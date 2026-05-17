@@ -210,9 +210,11 @@ export default function DeliveriesScreen() {
 
       console.log('Starting delivery...', delivery.originalData?.delivery_id);
       
+      // FIXED: Only set to in_transit if driver is actually in navigation and has confirmed pickup
+      // This should NOT be used here - status should only change in navigation.tsx after confirm pickup
       const response = await axios.put(
         `${API_BASE_URL}/deliveries/${delivery.originalData.delivery_id}/status`,
-        { delivery_status: 'in_transit' },
+        { delivery_status: 'assigned' }, // Keep as assigned until driver confirms pickup in navigation
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -222,7 +224,7 @@ export default function DeliveriesScreen() {
       );
 
       if (response.data.success) {
-        Alert.alert('Success', 'Delivery started! Status changed to In Transit');
+        Alert.alert('Success', 'Delivery started! Navigate to pickup location.');
         fetchDeliveries();
       } else {
         Alert.alert('Error', response.data.message || 'Failed to start delivery');

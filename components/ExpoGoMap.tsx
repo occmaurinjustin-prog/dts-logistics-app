@@ -229,21 +229,7 @@ const generateMapHTML = (
       100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
     }
 
-    /* Navigation Progress Dot */
-    .nav-progress-dot {
-      width: 14px;
-      height: 14px;
-      background: white;
-      border: 3px solid #2563EB;
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.6);
-      animation: navPulse 1s ease-in-out infinite;
-    }
-    @keyframes navPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.3); }
-    }
-  </style>
+      </style>
 </head>
 <body>
   <div id="map"></div>
@@ -253,7 +239,6 @@ const generateMapHTML = (
       let driverMarker = null;
       let routingControl = null;
       let driverHeading = ${driverHeading};
-      let navProgressMarker = null;
 
       // Validate center
       const centerLat = ${finalCenterLat};
@@ -350,33 +335,6 @@ const generateMapHTML = (
         // Listen for route found event
         routingControl.on('routesfound', function(e) {
           console.log('Route found with ' + e.routes[0].coordinates.length + ' points');
-
-          // Add animated progress dot
-          const route = e.routes[0];
-          const coords = route.coordinates;
-
-          if (coords.length > 0 && !navProgressMarker) {
-            const progressIcon = L.divIcon({
-              className: 'nav-progress-container',
-              html: '<div class="nav-progress-dot"></div>',
-              iconSize: [14, 14],
-              iconAnchor: [7, 7]
-            });
-
-            navProgressMarker = L.marker(coords[0], {
-              icon: progressIcon,
-              zIndexOffset: 1500
-            }).addTo(map);
-
-            // Animate along route
-            let progressIndex = 0;
-            window.navProgressInterval = setInterval(function() {
-              if (navProgressMarker && coords.length > 0) {
-                progressIndex = (progressIndex + 1) % coords.length;
-                navProgressMarker.setLatLng(coords[progressIndex]);
-              }
-            }, 100);
-          }
         });
 
         console.log('Routing control initialized');
@@ -441,16 +399,7 @@ const generateMapHTML = (
         } else {
           // Reset route fit flag when navigation stops
           window.hasFittedRoute = false;
-          // Cleanup
-          if (window.navProgressInterval) {
-            clearInterval(window.navProgressInterval);
-            window.navProgressInterval = null;
-          }
-          if (navProgressMarker) {
-            map.removeLayer(navProgressMarker);
-            navProgressMarker = null;
-          }
-          if (routingControl) {
+                    if (routingControl) {
             map.removeControl(routingControl);
             routingControl = null;
           }

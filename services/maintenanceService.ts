@@ -1,16 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const getApiBaseUrl = () => {
-  // For web debugging
-  if (typeof window !== 'undefined' && window.location?.hostname === 'localhost') {
-    return 'http://localhost:8000/api';
-  }
-  // For mobile, use the actual IP
-  return 'http://10.26.16.24:8000/api';
-};
-
-const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = 'https://dts-logistics-backend-2.onrender.com/api';
 
 export interface MaintenanceReportData {
   truckId: number;

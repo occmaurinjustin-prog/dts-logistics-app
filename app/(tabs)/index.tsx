@@ -5,17 +5,17 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  Platform,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Dimensions,
+    Platform,
+    RefreshControl,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import ExpoGoMap from '../../components/ExpoGoMap';
 import authService from '../../services/authService';
@@ -500,7 +500,7 @@ export default function HomeScreen() {
             
             {completedDeliveries.length === 0 ? (
               <View style={styles.emptyHistory}>
-                <Ionicons name="time-outline" size={24} color="#e3e2fa" />
+                <Ionicons name="time-outline" size={24} color="#070907" />
                 <Text style={styles.emptyHistoryText}>No completed deliveries yet</Text>
               </View>
             ) : (
@@ -522,7 +522,7 @@ export default function HomeScreen() {
                       </View>
                       <Text style={styles.timelineCustomer}>{delivery.customer}</Text>
                       <View style={styles.timelineMeta}>
-                        <Ionicons name="location-outline" size={12} color="#e3e2fa" />
+                        <Ionicons name="location-outline" size={12} color="#070907" />
                         <Text style={styles.timelineAddress} numberOfLines={1}>
                           {delivery.delivery_address}
                         </Text>
@@ -1105,11 +1105,11 @@ const styles = StyleSheet.create({
     color: '#070907',
   },
   timeline: {
-    backgroundColor: '#2F2C3D',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#7059BC',
+    borderColor: '#3BC240',
   },
   timelineItem: {
     flexDirection: 'row',
@@ -1123,15 +1123,15 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#453c59',
+    backgroundColor: '#3BC240',
   },
   timelineDotRecent: {
-    backgroundColor: '#7059BC',
+    backgroundColor: '#3BC240',
   },
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#7059BC',
+    backgroundColor: '#3BC240',
     marginTop: 4,
   },
   timelineContent: {
@@ -1147,10 +1147,10 @@ const styles = StyleSheet.create({
   timelineTracking: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#e3e2fa',
+    color: '#3BC240',
   },
   deliveredBadge: {
-    backgroundColor: '#453c59',
+    backgroundColor: '#3BC240',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -1158,13 +1158,13 @@ const styles = StyleSheet.create({
   deliveredBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#7059BC',
+    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   timelineCustomer: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#e3e2fa',
+    color: '#070907',
     marginBottom: 4,
   },
   timelineMeta: {
@@ -1175,12 +1175,12 @@ const styles = StyleSheet.create({
   },
   timelineAddress: {
     fontSize: 12,
-    color: '#e3e2fa',
+    color: '#070907',
     flex: 1,
   },
   timelineTime: {
     fontSize: 12,
-    color: '#e3e2fa',
+    color: '#070907',
     fontWeight: '500',
   },
 });

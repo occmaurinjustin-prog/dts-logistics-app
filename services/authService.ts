@@ -2,23 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-// API Configuration - Update with your PHP backend URL
-// For React Native development:
-// - Android emulator: use 10.0.2.2 to access host machine
-// - iOS simulator: use localhost
-// - Physical device: use your computer's LAN IP address (e.g., '192.168.1.100')
-const YOUR_COMPUTER_IP = '10.26.16.24'; // <-- For physical Android device
-
-const getApiBaseUrl = () => {
-  if (Platform.OS === 'android') {
-    // Physical Android device uses your computer's IP
-    return `http://${YOUR_COMPUTER_IP}:8000/api`;
-  }
-  // iOS simulator and web can use localhost
-  return 'http://localhost:8000/api';
-};
-
-const API_BASE_URL = getApiBaseUrl(); // Change to your actual backend URL
+// API Configuration - Render backend
+const API_BASE_URL = 'https://dts-logistics-backend-2.onrender.com/api';
 
 // Enable mock mode for testing when backend is not available
 const MOCK_MODE = false; // Set to true only for testing without backend

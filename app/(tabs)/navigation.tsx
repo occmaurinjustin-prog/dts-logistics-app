@@ -455,7 +455,7 @@ export default function NavigationScreen() {
         // Just picked up - move to delivery phase
         console.log('Confirming pickup for delivery:', currentStop.delivery_id);
         const response = await api.put(`/deliveries/${currentStop.delivery_id}/status`, {
-          status: 'in_transit',
+          delivery_status: 'in_transit',
           navigation_phase: 'delivery'
         });
         console.log('Pickup confirmed:', response.data);
@@ -479,7 +479,7 @@ export default function NavigationScreen() {
       } else {
         // Delivery complete
         await api.put(`/deliveries/${currentStop.delivery_id}/status`, {
-          status: 'delivered'
+          delivery_status: 'delivered'
         });
 
         // Check if there are more deliveries

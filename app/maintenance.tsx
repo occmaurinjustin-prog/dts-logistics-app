@@ -32,8 +32,6 @@ export default function MaintenanceScreen() {
   const [reportStatus, setReportStatus] = useState('pending');
   const [showMaintenanceHistory, setShowMaintenanceHistory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState('');
   
   // Truck information state for auto-fill
   const [truckInfo, setTruckInfo] = useState({
@@ -114,22 +112,17 @@ export default function MaintenanceScreen() {
   const handleSubmitReport = async () => {
     // Validate form
     if (!reportForm.issueTitle.trim() || !reportForm.issueDescription.trim()) {
-      setSubmitMessage('Please fill in all issue details before submitting.');
-      setSubmitSuccess(false);
-      setTimeout(() => setSubmitMessage(''), 3000);
+      alert('Please fill in all issue details before submitting.');
       return;
     }
 
     // Check if truck information is available
     if (!truckInfo.truckId || truckInfo.truckId === 0) {
-      setSubmitMessage('Unable to submit report. Truck information is not available.');
-      setSubmitSuccess(false);
-      setTimeout(() => setSubmitMessage(''), 3000);
+      alert('Unable to submit report. Truck information is not available.');
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage('');
     
     // Prepare submission data with only truck_id
     const submissionData = {
@@ -147,8 +140,7 @@ export default function MaintenanceScreen() {
       
       if (response.success) {
         setReportStatus('in-review');
-        setSubmitSuccess(true);
-        setSubmitMessage('Maintenance report submitted successfully! Report ID: ' + response.report?.id);
+        alert('Maintenance report submitted successfully! Report ID: ' + response.report?.id);
         
         // Reset form fields (except truck info)
         setReportForm(prev => ({
@@ -158,22 +150,16 @@ export default function MaintenanceScreen() {
           priorityLevel: 'medium',
         }));
         
-        // Hide success message after 3 seconds
+        // Reset status after showing success
         setTimeout(() => {
-          setSubmitSuccess(false);
-          setSubmitMessage('');
           setReportStatus('pending');
         }, 3000);
       } else {
-        setSubmitSuccess(false);
-        setSubmitMessage('Failed to submit report: ' + response.message);
-        setTimeout(() => setSubmitMessage(''), 3000);
+        alert('Failed to submit report: ' + response.message);
       }
     } catch (error) {
       console.error('Error submitting maintenance report:', error);
-      setSubmitSuccess(false);
-      setSubmitMessage('Failed to submit report. Please try again.');
-      setTimeout(() => setSubmitMessage(''), 3000);
+      alert('Failed to submit report. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -303,28 +289,8 @@ export default function MaintenanceScreen() {
               )}
             </TouchableOpacity>
             
-            {/* Submit Success/Error Message */}
-            {submitMessage !== '' && (
-              <View style={[
-                styles.submitMessageContainer,
-                submitSuccess ? styles.submitMessageSuccess : styles.submitMessageError
-              ]}>
-                <Ionicons 
-                  name={submitSuccess ? "checkmark-circle" : "alert-circle"} 
-                  size={20} 
-                  color={submitSuccess ? "#16A34A" : "#DC2626"} 
-                />
-                <Text style={[
-                  styles.submitMessageText,
-                  submitSuccess ? styles.submitMessageTextSuccess : styles.submitMessageTextError
-                ]}>
-                  {submitMessage}
-                </Text>
-              </View>
-            )}
-            
             {/* Report Status Badge */}
-            {reportStatus !== 'pending' && !submitSuccess && (
+            {reportStatus !== 'pending' && (
               <View style={[
                 styles.statusBadge,
                 reportStatus === 'in-review' && styles.statusBadgeInReview,
@@ -819,35 +785,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     fontWeight: '600',
-  },
-  submitMessageContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 12,
-    gap: 8,
-  },
-  submitMessageSuccess: {
-    backgroundColor: '#DCFCE7',
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-  },
-  submitMessageError: {
-    backgroundColor: '#FEE2E2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  submitMessageText: {
-    fontSize: 14,
-    fontWeight: '500',
-    flex: 1,
-  },
-  submitMessageTextSuccess: {
-    color: '#166534',
-  },
-  submitMessageTextError: {
-    color: '#991B1B',
   },
 });
 

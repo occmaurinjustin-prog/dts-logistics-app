@@ -21,6 +21,7 @@ export default function TabLayout() {
           fontSize: 12,
           fontWeight: '500',
         },
+        animation: 'fade',
       }}>
       <Tabs.Screen
         name="index"
