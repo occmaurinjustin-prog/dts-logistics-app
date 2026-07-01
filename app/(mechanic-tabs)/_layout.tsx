@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
 
-export default function TabLayout() {
+export default function MechanicTabLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -12,8 +13,8 @@ export default function TabLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E2E8F0',
-          // height: Platform.OS === 'ios' ? 90 : 72,
-          // paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+          height: Platform.OS === 'ios' ? 90 : 72,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
           paddingTop: 1,
           elevation: 8,
           shadowColor: '#0F172A',
@@ -34,50 +35,35 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'home' : 'home-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="deliveries"
+        name="assignments"
         options={{
-          title: 'Deliveries',
+          title: 'Assignment',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'cube' : 'cube-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'clipboard' : 'clipboard-outline'} size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="route"
+        name="inspection-reports"
         options={{
-          title: 'Routes',
+          title: 'Inspection',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'map' : 'map-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'search' : 'search-outline'} size={24} color={color} />
           ),
         }}
       />
+
       <Tabs.Screen
-        name="navigation"
+        name="face-attendance"
         options={{
-          title: 'Navigation',
+          title: 'Face Log',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'navigate-circle' : 'navigate-circle-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'scan' : 'scan-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -86,21 +72,10 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'person' : 'person-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
           ),
         }}
       />
-
-
-
     </Tabs>
-
-
-
-
   );
 }

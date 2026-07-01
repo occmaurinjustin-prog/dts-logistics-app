@@ -1,7 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://dts-logistics-backend-2.onrender.com/api';
+const getApiBaseUrl = () => {
+  // For web debugging
+  if (typeof window !== 'undefined' && window.location?.hostname === 'localhost') {
+    return 'http://localhost:8000/api';
+  }
+  // For mobile, use the actual IP
+  return 'http://10.65.49.24:8000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Driver status types
 export type DriverStatus = 'available' | 'busy' | 'in_transit' | 'offline';
@@ -17,7 +26,7 @@ export interface DriverProfile {
   current_delivery_id?: number | null;
   current_delivery?: {
     delivery_id: number;
-    tracking_number: string;
+    waybill: string;
     pickup_address: string;
     delivery_address: string;
     status: string;
@@ -164,7 +173,8 @@ class DriverService {
     latitude: number,
     longitude: number,
     speed?: number,
-    heading?: number
+    heading?: number,
+    isGpsEnabled?: boolean
   ): Promise<boolean> {
     try {
       const response = await this.api.post('/driver/location', {
@@ -172,6 +182,7 @@ class DriverService {
         current_longitude: longitude,
         current_speed: speed ?? 0,
         heading: heading ?? 0,
+        is_gps_enabled: isGpsEnabled ?? true,
       });
       return response.data.success ?? true;
     } catch (error) {
@@ -201,7 +212,8 @@ class DriverService {
             next_inspection: driver.truck.next_inspection || 'N/A',
             insurance_status: driver.truck.insurance_status || 'N/A',
             truck_id: driver.truck.truck_id || driver.truck_id || null,
-            truck_status: driver.truck.truck_status || 'unknown'
+            truck_status: driver.truck.truck_status || 'unknown',
+            unique_id: driver.truck.unique_id || 'N/A'
           };
         } else {
           // Fallback for legacy format or when no truck is assigned
@@ -213,7 +225,8 @@ class DriverService {
             last_maintenance: 'N/A',
             next_inspection: 'N/A',
             insurance_status: 'N/A',
-            truck_id: driver.truck_id || null
+            truck_id: driver.truck_id || null,
+            unique_id: 'N/A'
           };
         }
       }

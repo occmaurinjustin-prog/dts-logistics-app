@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -36,6 +37,7 @@ export default function MaintenanceScreen() {
   // Truck information state for auto-fill
   const [truckInfo, setTruckInfo] = useState({
     truckId: 0,
+    uniqueId: '',
   });
   const [loadingTruckInfo, setLoadingTruckInfo] = useState(true);
 
@@ -51,9 +53,11 @@ export default function MaintenanceScreen() {
       
       if (truckData) {
         const truckId = truckData.truck_id || 0;
+        const uniqueId = truckData.unique_id || '';
         
         setTruckInfo({
           truckId,
+          uniqueId,
         });
         
         // Auto-fill form with truck information
@@ -65,6 +69,7 @@ export default function MaintenanceScreen() {
         // Set default values if no truck assigned
         setTruckInfo({
           truckId: 0,
+          uniqueId: '',
         });
         setReportForm(prev => ({
           ...prev,
@@ -75,6 +80,7 @@ export default function MaintenanceScreen() {
       console.error('Error fetching truck info:', error);
       setTruckInfo({
         truckId: 0,
+        uniqueId: '',
       });
     } finally {
       setLoadingTruckInfo(false);
@@ -171,7 +177,7 @@ export default function MaintenanceScreen() {
         {/* Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={22} color="#0F172A" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Maintenance Reports</Text>
           <View style={{ width: 24 }} />
@@ -188,13 +194,13 @@ export default function MaintenanceScreen() {
             <View style={styles.truckInfoHeader}>
               <Text style={styles.subsectionTitle}>Truck Information</Text>
               <TouchableOpacity onPress={fetchTruckInfo} style={styles.refreshButton}>
-                <Ionicons name="refresh" size={16} color="#22C55E" />
+                <Ionicons name="refresh" size={16} color="#10B981" />
               </TouchableOpacity>
             </View>
             
             {loadingTruckInfo ? (
               <View style={[styles.reportInput, styles.loadingContainer]}>
-                <ActivityIndicator size="small" color="#22C55E" />
+                <ActivityIndicator size="small" color="#10B981" />
                 <Text style={styles.loadingText}>Loading truck information...</Text>
               </View>
             ) : (
@@ -202,8 +208,8 @@ export default function MaintenanceScreen() {
                 <View style={[styles.reportInput, styles.displayField]}>
                   <Ionicons name="card-outline" size={20} color="#6B7280" style={styles.fieldIcon} />
                   <View>
-                    <Text style={styles.fieldLabel}>Truck ID</Text>
-                    <Text style={styles.fieldValue}>{truckInfo.truckId}</Text>
+                    <Text style={styles.fieldLabel}>Unique ID</Text>
+                    <Text style={styles.fieldValue}>{truckInfo.uniqueId || 'N/A'}</Text>
                   </View>
                 </View>
                 
@@ -339,7 +345,7 @@ export default function MaintenanceScreen() {
               
               {loadingHistory ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#3BC240" />
+                  <ActivityIndicator size="large" color="#10B981" />
                   <Text style={styles.loadingText}>Loading maintenance history...</Text>
                 </View>
               ) : maintenanceHistory.length === 0 ? (
@@ -354,7 +360,7 @@ export default function MaintenanceScreen() {
                     <View style={styles.historyHeader}>
                       <View>
                         <Text style={styles.historyId}>Report ID: #{report.id}</Text>
-                        <Text style={styles.historyTruck}>Truck ID: {report.truck_id || 'N/A'}</Text>
+                        <Text style={styles.historyTruck}>Unique ID: {report.unique_id || 'N/A'}</Text>
                         <Text style={styles.historyDate}>
                           {new Date(report.created_at).toLocaleDateString('en-US', { 
                             month: 'short', 
@@ -417,43 +423,45 @@ export default function MaintenanceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
-    paddingTop: 55,
+    paddingTop: Platform.OS === 'ios' ? 0 : 8,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#22C55E',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
   },
   backButton: {
-    padding: 8,
+    padding: 4,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
     textAlign: 'center',
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
 
   // Modern Header Styles
   modernHeader: {
-    height: 200,
-    borderRadius: 28,
-    padding: 24,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 5,
-    marginBottom: 24,
+    height: 180,
+    borderRadius: 20,
+    padding: 20,
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+    marginBottom: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -461,14 +469,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modernHeaderText: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: 10,
+    marginBottom: 6,
   },
   modernSubText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#FFFFFF',
     opacity: 0.9,
   },
@@ -476,42 +484,46 @@ const styles = StyleSheet.create({
   // Form Styles
   formSection: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginTop: 16,
     marginBottom: 16,
   },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 14,
+  },
   subsectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 12,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 8,
   },
   truckInfoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   refreshButton: {
-    padding: 8,
+    padding: 6,
     borderRadius: 8,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#ECFDF5',
   },
   reportInput: {
-    height: 54,
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
-    marginBottom: 14,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 14,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    fontSize: 16,
+    borderColor: '#E2E8F0',
+    fontSize: 13,
+    color: '#0F172A',
   },
   displayField: {
     flexDirection: 'row',
@@ -519,18 +531,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   fieldIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   fieldLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
+    fontSize: 10,
+    color: '#94A3B8',
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   fieldValue: {
-    fontSize: 16,
-    color: '#111827',
-    fontWeight: '600',
-    marginTop: 2,
+    fontSize: 14,
+    color: '#0F172A',
+    fontWeight: '700',
+    marginTop: 1,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -539,82 +552,76 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
   },
   reportTextarea: {
-    height: 140,
-    paddingTop: 16,
-    fontSize: 15,
-    lineHeight: 20,
+    height: 110,
+    paddingTop: 12,
+    fontSize: 13,
+    lineHeight: 18,
   },
   exampleText: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 11,
+    color: '#94A3B8',
     fontStyle: 'italic',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   priorityContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   priorityButton: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 10,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   priorityButtonActive: {
-    backgroundColor: '#22C55E',
-    borderColor: '#22C55E',
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
   },
   priorityButtonText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   priorityButtonTextActive: {
     color: '#FFFFFF',
   },
   reportButton: {
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: '#22C55E',
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 14,
+    marginTop: 12,
   },
   reportButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   reportButtonDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: '#94A3B8',
     opacity: 0.7,
   },
   historyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3BC240',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+    justifyContent: 'center',
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 24,
+    gap: 8,
   },
   historyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginLeft: 8,
   },
 
   // Modal Styles
@@ -624,7 +631,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 10,
@@ -632,42 +639,38 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    width: '90%',
-    maxHeight: '80%',
+    width: '92%',
+    maxHeight: '82%',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
     elevation: 5,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#E2E8F0',
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   modalContent: {
-    padding: 20,
+    padding: 16,
   },
 
   // Status Badge Styles
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 12,
     alignSelf: 'flex-start',
-    marginTop: 14,
   },
   statusBadgePending: {
     backgroundColor: '#FEF3C7',
@@ -676,21 +679,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF3C7',
   },
   statusBadgeApproved: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#ECFDF5',
   },
   statusBadgeRepairOngoing: {
-    backgroundColor: '#FB923C',
+    backgroundColor: '#FFF7ED',
   },
   statusBadgeFixed: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#ECFDF5',
   },
   statusBadgeRejected: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FEF2F2',
   },
   statusBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   statusBadgeTextPending: {
     color: '#D97706',
@@ -699,92 +702,96 @@ const styles = StyleSheet.create({
     color: '#D97706',
   },
   statusBadgeTextApproved: {
-    color: '#16A34A',
+    color: '#10B981',
   },
   statusBadgeTextRepairOngoing: {
-    color: '#DC2626',
+    color: '#EA580C',
   },
   statusBadgeTextFixed: {
-    color: '#16A34A',
+    color: '#10B981',
   },
   statusBadgeTextRejected: {
-    color: '#DC2626',
+    color: '#EF4444',
   },
 
   // Maintenance History Styles
   historyCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 14,
+    padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E2E8F0',
   },
   historyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: 10,
   },
   historyId: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '700',
   },
   historyTruck: {
-    fontSize: 14,
-    color: '#111827',
-    fontWeight: '600',
+    fontSize: 13,
+    color: '#0F172A',
+    fontWeight: '700',
+    marginTop: 2,
   },
   historyIssue: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 13,
+    color: '#0F172A',
+    fontWeight: '700',
     marginBottom: 4,
   },
   historyDate: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+    fontWeight: '500',
   },
   historyMechanic: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
   },
   historyDetails: {
-    // Add any additional styling if needed
+    // Keep consistent
   },
   emptyHistoryContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 32,
   },
   emptyHistoryText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 10,
   },
   emptyHistorySubtext: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 8,
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 6,
     textAlign: 'center',
   },
   historyDescription: {
-    fontSize: 13,
-    color: '#374151',
-    marginTop: 8,
+    fontSize: 12,
+    color: '#475569',
+    marginTop: 4,
     lineHeight: 18,
   },
   historyMeta: {
-    marginTop: 12,
-    gap: 8,
+    marginTop: 10,
+    gap: 4,
   },
   historyPriority: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '700',
   },
 });
 

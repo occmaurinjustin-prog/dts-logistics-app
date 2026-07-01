@@ -4,17 +4,17 @@ import axios from 'axios';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Platform,
-    RefreshControl,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Platform,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import CurrentDeliveryCard from '../components/CurrentDeliveryCard';
 import DriverStatusIndicator from '../components/DriverStatusIndicator';
@@ -22,7 +22,7 @@ import authService from '../services/authService';
 import driverService, { DriverProfile } from '../services/driverService';
 
 // API Configuration
-const YOUR_COMPUTER_IP = '10.26.16.24';
+const YOUR_COMPUTER_IP = '10.65.49.24';
 const getApiBaseUrl = () => {
   if (Platform.OS === 'android') {
     return `http://${YOUR_COMPUTER_IP}:8000/api`;
@@ -34,7 +34,7 @@ const API_BASE_URL = getApiBaseUrl();
 // Types
 interface Delivery {
   id: string;
-  tracking_number: string;
+  waybill: string;
   status: string;
   pickup_address: string;
   delivery_address: string;
@@ -123,7 +123,7 @@ export default function DashboardScreen() {
           .slice(0, 3)
           .map((d: any) => ({
             id: d.delivery_id,
-            tracking_number: d.tracking_number,
+            waybill: d.waybill,
             status: d.delivery_status === 'in_transit' ? 'In Transit' : 'Assigned',
             pickup_address: d.pickup_address,
             delivery_address: d.delivery_address,
@@ -337,7 +337,7 @@ export default function DashboardScreen() {
                   <View style={styles.deliveryRow}>
                     <View style={styles.deliveryMain}>
                       <View style={styles.deliveryHeaderRow}>
-                        <Text style={styles.trackingNumber}>#{delivery.tracking_number}</Text>
+                        <Text style={styles.trackingNumber}>#{delivery.waybill}</Text>
                         <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(delivery.priority) }]}>
                           <Text style={styles.priorityText}>{delivery.priority}</Text>
                         </View>

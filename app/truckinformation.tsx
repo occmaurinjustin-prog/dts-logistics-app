@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   RefreshControl,
   SafeAreaView,
   ScrollView,
@@ -104,13 +105,13 @@ export default function TruckInformationScreen() {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.header}>
             <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+              <Ionicons name="arrow-back" size={22} color="#0F172A" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Truck Information</Text>
             <View style={{ width: 24 }} />
           </View>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#22C55E" />
+            <ActivityIndicator size="large" color="#10B981" />
             <Text style={styles.loadingText}>Loading truck information...</Text>
           </View>
         </SafeAreaView>
@@ -124,11 +125,11 @@ export default function TruckInformationScreen() {
         {/* Custom Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={22} color="#0F172A" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Truck Information</Text>
           <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
-            <Ionicons name="refresh" size={24} color="#FFFFFF" />
+            <Ionicons name="refresh" size={20} color="#0F172A" />
           </TouchableOpacity>
         </View>
 
@@ -139,8 +140,8 @@ export default function TruckInformationScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#22C55E']}
-              tintColor="#22C55E"
+              colors={['#10B981']}
+              tintColor="#10B981"
             />
           }
         >
@@ -158,7 +159,7 @@ export default function TruckInformationScreen() {
           <View style={styles.infoCard}>
             <View style={styles.cardHeader}>
               <View style={styles.truckIconContainer}>
-                <Ionicons name="car-outline" size={32} color="#22C55E" />
+                <Ionicons name="car-outline" size={32} color="#10B981" />
               </View>
               <Text style={styles.cardTitle}>Vehicle Details</Text>
             </View>
@@ -242,7 +243,7 @@ export default function TruckInformationScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity style={[styles.actionButton, styles.secondaryButton]}>
-              <Ionicons name="build-outline" size={20} color="#22C55E" />
+              <Ionicons name="build-outline" size={20} color="#10B981" />
               <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>Report Issue</Text>
             </TouchableOpacity>
           </View>
@@ -255,90 +256,87 @@ export default function TruckInformationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
-    paddingTop: 55,
+    paddingTop: Platform.OS === 'ios' ? 0 : 8,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#22C55E',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
   },
   backButton: {
-    padding: 8,
+    padding: 4,
   },
   refreshButton: {
-    padding: 8,
+    padding: 4,
   },
   timestampContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
+    padding: 10,
+    marginTop: 14,
+    marginBottom: 14,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   timestampText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontStyle: 'italic',
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '500',
   },
   headerTitle: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
     textAlign: 'center',
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
 
   // Info Card Styles
   infoCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   truckIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#DCFCE7',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#ECFDF5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
   },
 
   // Info Row Styles
@@ -346,120 +344,120 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#F1F5F9',
   },
   infoLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   infoLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#374151',
-    marginLeft: 12,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+    marginLeft: 10,
   },
   infoValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
   },
 
   // Condition Badge Styles
   conditionBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   conditionGood: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#ECFDF5',
   },
   conditionFair: {
     backgroundColor: '#FEF3C7',
   },
   conditionPoor: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FEF2F2',
   },
   conditionText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
   },
   conditionTextGood: {
-    color: '#16A34A',
+    color: '#10B981',
   },
   conditionTextFair: {
     color: '#D97706',
   },
   conditionTextPoor: {
-    color: '#DC2626',
+    color: '#EF4444',
   },
 
   // Additional Info Card
   additionalInfoCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 14,
   },
   infoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#F1F5F9',
   },
   infoItemLabel: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
   },
   infoItemValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F172A',
   },
 
   // Action Buttons
   actionButtons: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#22C55E',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
     justifyContent: 'center',
+    gap: 6,
   },
   secondaryButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#22C55E',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
   },
   actionButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '700',
   },
   secondaryButtonText: {
-    color: '#22C55E',
+    color: '#10B981',
   },
 
   // Loading Styles
@@ -467,12 +465,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8FAFC',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: 12,
+    fontSize: 13,
+    color: '#64748B',
     fontWeight: '500',
   },
 });

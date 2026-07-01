@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -9,6 +10,9 @@ import {
   Alert,
   Animated,
   Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
   PanResponder,
   Platform,
   RefreshControl,
@@ -16,6 +20,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
@@ -33,9 +38,9 @@ const SNAP_POINTS = {
   HALF: SCREEN_HEIGHT * 0.45,  // Half expanded
 };
 
-const API_BASE_URL = Platform.OS === 'web' 
+const API_BASE_URL = Platform.OS === 'web'
   ? 'http://localhost:8000/api'
-  : 'http://10.26.16.24:8000/api';
+  : 'http://10.65.49.24:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -49,6 +54,22 @@ api.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+// Calculate Haversine distance in meters
+const getDistanceInMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
 
 // Stable hash function for consistent distance/duration values
 const hashCode = (str: string): number => {
@@ -75,7 +96,7 @@ interface NavigationStop {
   type: 'pickup' | 'delivery';
   customer?: string;
   contact?: string;
-  tracking_number?: string;
+  waybill?: string;
   status?: string;
 }
 
@@ -92,15 +113,30 @@ export default function NavigationScreen() {
   const [currentDeliveryIndex, setCurrentDeliveryIndex] = useState(0);
   const [navigationPhase, setNavigationPhase] = useState<NavigationPhase>('preview');
 
+  // Proof of Delivery (POD) states
+  const [podModalVisible, setPodModalVisible] = useState(false);
+  const [podImage, setPodImage] = useState<string | null>(null);
+  const [podRemarks, setPodRemarks] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
   // GPS Location State
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [gpsEnabled, setGpsEnabled] = useState(false);
   const locationSubscription = useRef<Location.LocationSubscription | null>(null);
-  
+
+  // Live Route Status
+  const [liveDistance, setLiveDistance] = useState<string | null>(null);
+  const [liveDuration, setLiveDuration] = useState<string | null>(null);
+
+  // Arrival Validation
+  const ARRIVAL_RADIUS = 50; // meters
+  const [distanceToDestination, setDistanceToDestination] = useState<number | null>(null);
+  const [hasArrived, setHasArrived] = useState(false);
+
   // Bottom Sheet Animation State
   const sheetPosition = useRef(new Animated.Value(SNAP_POINTS.COLLAPSED)).current;
   const [currentSnapPoint, setCurrentSnapPoint] = useState('COLLAPSED');
-  
+
   // PanResponder for bottom sheet gestures
   const panResponder = useRef(
     PanResponder.create({
@@ -124,9 +160,9 @@ export default function NavigationScreen() {
         sheetPosition.flattenOffset();
         const currentHeight = SNAP_POINTS.COLLAPSED - gestureState.dy;
         const velocity = gestureState.vy;
-        
+
         let targetSnapPoint;
-        
+
         // Determine snap point based on velocity and position
         if (velocity > 0.5) {
           // Swiping down
@@ -144,7 +180,7 @@ export default function NavigationScreen() {
             targetSnapPoint = SNAP_POINTS.COLLAPSED;
           }
         }
-        
+
         // Animate to target snap point with smooth spring animation
         Animated.spring(sheetPosition, {
           toValue: targetSnapPoint,
@@ -152,7 +188,7 @@ export default function NavigationScreen() {
           tension: 30,  // Much lower tension for smoother animation
           friction: 10, // Higher friction for more damping
         }).start();
-        
+
         // Update current snap point state
         if (targetSnapPoint === SNAP_POINTS.HALF) {
           setCurrentSnapPoint('HALF');
@@ -164,7 +200,7 @@ export default function NavigationScreen() {
       },
     })
   ).current;
-  
+
   // Throttling refs for API calls
   const lastDeliveryFetchRef = useRef<number>(0);
   const DELIVERY_FETCH_INTERVAL = 60000; // Only fetch deliveries every 60 seconds max
@@ -175,13 +211,13 @@ export default function NavigationScreen() {
     const now = Date.now();
     const timeSinceLastFetch = now - lastDeliveryFetchRef.current;
     if (timeSinceLastFetch < DELIVERY_FETCH_INTERVAL && !refreshing) {
-      console.log('Skipping delivery fetch, last fetch was', Math.round(timeSinceLastFetch/1000), 'seconds ago');
+      console.log('Skipping delivery fetch, last fetch was', Math.round(timeSinceLastFetch / 1000), 'seconds ago');
       return;
     }
-    
+
     console.log('Fetching deliveries (refresh)...');
     lastDeliveryFetchRef.current = now;
-    
+
     try {
       setRefreshing(true);
       const response = await api.get('/deliveries');
@@ -213,14 +249,14 @@ export default function NavigationScreen() {
               address: delivery.pickup_address,
               latitude: pickupLat,
               longitude: pickupLng,
-              distance: `${(hashCode(delivery.tracking_number || 'pickup') % 50 + 10) / 10} km`,
-              duration: `${(hashCode(delivery.tracking_number || 'pickup') % 15 + 5)} min`,
+              distance: `${(hashCode(delivery.waybill || 'pickup') % 50 + 10) / 10} km`,
+              duration: `${(hashCode(delivery.waybill || 'pickup') % 15 + 5)} min`,
               instruction: `Pick up ${delivery.item_description || 'items'} from ${delivery.client?.client_name || 'customer'}`,
               icon: 'arrow-up',
               type: 'pickup',
               customer: delivery.client?.client_name || delivery.customer,
               contact: delivery.contact || '+63 912 345 6789',
-              tracking_number: delivery.tracking_number,
+              waybill: delivery.waybill,
               delivery_id: delivery.delivery_id || delivery.id,
               status: delivery.delivery_status,
             });
@@ -237,14 +273,14 @@ export default function NavigationScreen() {
               address: delivery.delivery_address || delivery.address,
               latitude: deliveryLat,
               longitude: deliveryLng,
-              distance: `${(hashCode(delivery.tracking_number || 'delivery') % 80 + 20) / 10} km`,
-              duration: `${(hashCode(delivery.tracking_number || 'delivery') % 20 + 10)} min`,
+              distance: `${(hashCode(delivery.waybill || 'delivery') % 80 + 20) / 10} km`,
+              duration: `${(hashCode(delivery.waybill || 'delivery') % 20 + 10)} min`,
               instruction: `Deliver to ${delivery.delivery_address || delivery.address}`,
               icon: 'location',
               type: 'delivery',
               customer: delivery.client?.client_name || delivery.customer,
               contact: delivery.contact || '+63 923 456 7890',
-              tracking_number: delivery.tracking_number,
+              waybill: delivery.waybill,
               delivery_id: delivery.delivery_id || delivery.id,
               status: delivery.delivery_status,
             });
@@ -261,16 +297,52 @@ export default function NavigationScreen() {
         setDeliveries(groupedDeliveries);
 
         if (allSteps.length > 0) {
-          setCurrentStep(0);
-          setCurrentDeliveryIndex(0);
-          
-          // Set initial navigation phase from API (default to pickup if not set)
-          const firstDelivery = activeDeliveries[0];
-          if (firstDelivery?.navigation_phase) {
-            setNavigationPhase(firstDelivery.navigation_phase);
-          } else if (firstDelivery?.status === 'in_transit') {
-            setNavigationPhase('delivery');
+          // Read local persistent state
+          const savedStateStr = await AsyncStorage.getItem('@driver_navigation_state');
+          let localPhase: NavigationPhase = 'preview';
+          let localIndex = 0;
+          let localStep = 0;
+          let localIsNavigating = false;
+
+          if (savedStateStr) {
+            try {
+              const savedState = JSON.parse(savedStateStr);
+              localPhase = savedState.navigationPhase || 'preview';
+              localIndex = savedState.currentDeliveryIndex || 0;
+              localStep = savedState.currentStep || 0;
+              localIsNavigating = savedState.isNavigating || false;
+            } catch (e) {
+              console.log('Error parsing saved navigation state', e);
+            }
           }
+
+          const firstDelivery = activeDeliveries[0];
+          const backendStatus = firstDelivery?.delivery_status || firstDelivery?.status;
+
+          // Backend priority: if backend says it's in transit, force delivery phase
+          if (backendStatus === 'in_transit' || backendStatus === 'In Transit' || backendStatus === 'picked_up') {
+            setNavigationPhase('delivery');
+            setCurrentDeliveryIndex(0);
+            setCurrentStep(1); // 1 is typically the delivery stop
+            setIsNavigating(true);
+          } else if (firstDelivery?.navigation_phase) {
+            setNavigationPhase(firstDelivery.navigation_phase);
+            setCurrentDeliveryIndex(0);
+            setCurrentStep(0);
+          } else {
+            // Apply local state if backend is still just 'assigned' or similar
+            setNavigationPhase(localPhase);
+            setCurrentDeliveryIndex(localIndex);
+            setCurrentStep(localStep);
+            setIsNavigating(localIsNavigating);
+          }
+        } else {
+          // No deliveries, clear state
+          await AsyncStorage.removeItem('@driver_navigation_state');
+          setNavigationPhase('preview');
+          setCurrentDeliveryIndex(0);
+          setCurrentStep(0);
+          setIsNavigating(false);
         }
       }
     } catch (error) {
@@ -283,7 +355,7 @@ export default function NavigationScreen() {
 
   useEffect(() => {
     fetchDeliveries();
-    
+
     // Get initial location immediately
     const getInitialLocation = async () => {
       try {
@@ -299,13 +371,53 @@ export default function NavigationScreen() {
         console.log('Initial location error:', error);
       }
     };
-    
+
     getInitialLocation();
   }, [fetchDeliveries]);
+
+  // Save navigation state whenever important variables change
+  useEffect(() => {
+    const saveState = async () => {
+      try {
+        const stateToSave = {
+          navigationPhase,
+          currentDeliveryIndex,
+          currentStep,
+          isNavigating,
+        };
+        await AsyncStorage.setItem('@driver_navigation_state', JSON.stringify(stateToSave));
+      } catch (e) {
+        console.error('Failed to save navigation state', e);
+      }
+    };
+
+    saveState();
+  }, [navigationPhase, currentDeliveryIndex, currentStep, isNavigating]);
 
   // Ref for location update interval
   const locationUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSentLocation = useRef<Location.LocationObject | null>(null);
+
+  // Driver Stops Tracking Refs
+  const stopStartTime = useRef<number | null>(null);
+  const hasActiveStop = useRef<boolean>(false);
+  const lastMovingLocation = useRef<Location.LocationObject | null>(null);
+
+  // Restore stop state on mount
+  useEffect(() => {
+    const loadStopState = async () => {
+      try {
+        const active = await AsyncStorage.getItem('@driver_has_active_stop');
+        if (active === 'true') hasActiveStop.current = true;
+
+        const startTime = await AsyncStorage.getItem('@driver_stop_start_time');
+        if (startTime) stopStartTime.current = parseInt(startTime, 10);
+      } catch (e) {
+        console.error('Failed to load stop state', e);
+      }
+    };
+    loadStopState();
+  }, []);
 
   // Request GPS Permission & Start Tracking
   const startGPSTracking = async () => {
@@ -332,24 +444,152 @@ export default function NavigationScreen() {
           distanceInterval: 5, // Update every 5 meters for smoother experience
           timeInterval: 3000, // Minimum 3 seconds between updates
         },
-        (newLocation: Location.LocationObject) => {
+        async (newLocation: Location.LocationObject) => {
           setLocation(newLocation);
           lastSentLocation.current = newLocation;
           console.log('GPS Update:', newLocation.coords.latitude, newLocation.coords.longitude);
+
+          // --- Driver Stop Tracking Logic ---
+          const currentSpeed = newLocation.coords.speed || 0; // speed is in m/s
+          const speedThreshold = 0.55; // ~2 km/h
+
+          let distanceMoved = 0;
+          if (lastMovingLocation.current) {
+            distanceMoved = getDistanceInMeters(
+              lastMovingLocation.current.coords.latitude,
+              lastMovingLocation.current.coords.longitude,
+              newLocation.coords.latitude,
+              newLocation.coords.longitude
+            );
+          }
+
+          const isMoving = currentSpeed > speedThreshold || distanceMoved > 10;
+
+          if (isMoving) {
+            // Driver is moving
+            lastMovingLocation.current = newLocation;
+
+            if (stopStartTime.current !== null) {
+              stopStartTime.current = null;
+              AsyncStorage.removeItem('@driver_stop_start_time');
+            }
+
+            if (hasActiveStop.current) {
+              // End the stop
+              hasActiveStop.current = false;
+              AsyncStorage.removeItem('@driver_has_active_stop');
+              try {
+                await api.post('/driver/stops/end', {
+                  resumed_at: new Date().toISOString()
+                });
+                console.log('Driver stop ended successfully');
+              } catch (e) {
+                console.error('Failed to end driver stop:', e);
+              }
+            }
+          } else {
+            // Driver is stopped
+            const now = Date.now();
+            if (stopStartTime.current === null) {
+              stopStartTime.current = now;
+              AsyncStorage.setItem('@driver_stop_start_time', now.toString());
+            } else {
+              const timeStopped = now - stopStartTime.current;
+             // const threeMinutes = 3 * 60 * 1000; // 3 minutes
+              const threeMinutes = 10 * 1000; // 10 seconds for testing
+
+              if (timeStopped >= threeMinutes && !hasActiveStop.current) {
+                // Record the stop
+                hasActiveStop.current = true;
+                AsyncStorage.setItem('@driver_has_active_stop', 'true');
+                try {
+                  // Attempt to get the address
+                  let address = '';
+                  try {
+                    const geocode = await Location.reverseGeocodeAsync({
+                      latitude: newLocation.coords.latitude,
+                      longitude: newLocation.coords.longitude
+                    });
+                    if (geocode && geocode.length > 0) {
+                      const place = geocode[0];
+                      address = `${place.name || place.streetNumber || ''} ${place.street || ''}, ${place.city || place.subregion || ''}, ${place.region || ''}`.trim().replace(/^,|,$/g, '').trim();
+                    }
+                  } catch (geoError) {
+                    console.error('Reverse geocoding failed:', geoError);
+                  }
+
+                  await api.post('/driver/stops/start', {
+                    latitude: newLocation.coords.latitude,
+                    longitude: newLocation.coords.longitude,
+                    address: address,
+                    stopped_at: new Date(stopStartTime.current).toISOString()
+                  });
+                  console.log('Driver stop started successfully');
+                } catch (e) {
+                  console.error('Failed to start driver stop:', e);
+                }
+              }
+            }
+          }
+          // ------------------------------------
+
+          // Real-time route update: when location changes, the map will automatically update
+          // because we pass location as a prop to ExpoGoMap
         }
       );
 
       // Send location to backend every 10 seconds
-      locationUpdateInterval.current = setInterval(() => {
-        if (lastSentLocation.current) {
-          const { latitude, longitude, speed, heading } = lastSentLocation.current.coords;
-          driverService.updateLocation(latitude, longitude, speed || 0, heading || 0)
-            .then(() => {
-              console.log('Location sent to server:', latitude, longitude);
-            })
-            .catch((err: Error) => {
-              console.error('Failed to send location:', err);
-            });
+      locationUpdateInterval.current = setInterval(async () => {
+        try {
+          // Check if GPS is still enabled on the device
+          const enabled = await Location.hasServicesEnabledAsync();
+          setGpsEnabled(enabled);
+
+          if (lastSentLocation.current) {
+            const { latitude, longitude, speed, heading } = lastSentLocation.current.coords;
+            driverService.updateLocation(latitude, longitude, speed || 0, heading || 0, enabled)
+              .then(() => {
+                console.log('Location sent to server:', latitude, longitude, 'gpsEnabled:', enabled);
+              })
+              .catch((err: Error) => {
+                console.error('Failed to send location:', err);
+              });
+
+            // --- Driver Stop Timer Check ---
+            // Even if watchPositionAsync doesn't fire (because device is perfectly still),
+            // this interval will check if the 3-minute threshold has been reached.
+            if (stopStartTime.current !== null && !hasActiveStop.current) {
+              const now = Date.now();
+              const timeStopped = now - stopStartTime.current;
+              // const threeMinutes = 3 * 60 * 1000; // 3 minutes
+              const threeMinutes = 10 * 1000; // 10 seconds for testing
+
+              if (timeStopped >= threeMinutes) {
+                hasActiveStop.current = true;
+                AsyncStorage.setItem('@driver_has_active_stop', 'true');
+
+                // Fetch address
+                Location.reverseGeocodeAsync({ latitude, longitude })
+                  .then((geocode) => {
+                    let address = '';
+                    if (geocode && geocode.length > 0) {
+                      const place = geocode[0];
+                      address = `${place.name || place.streetNumber || ''} ${place.street || ''}, ${place.city || place.subregion || ''}, ${place.region || ''}`.trim().replace(/^,|,$/g, '').trim();
+                    }
+                    return api.post('/driver/stops/start', {
+                      latitude: latitude,
+                      longitude: longitude,
+                      address: address,
+                      stopped_at: new Date(stopStartTime.current as number).toISOString()
+                    });
+                  })
+                  .then(() => console.log('Driver stop started successfully via interval'))
+                  .catch(e => console.error('Failed to start driver stop via interval:', e));
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error in location update interval:', e);
         }
       }, 10000); // 10 seconds
 
@@ -377,6 +617,32 @@ export default function NavigationScreen() {
     };
   }, []);
 
+  // Real-time route update: when location changes during navigation, trigger map refresh
+  useEffect(() => {
+    if (isNavigating && location && navigationPhase !== 'complete') {
+      console.log('Location changed during navigation, updating route');
+      // The ExpoGoMap component will automatically re-render with new location
+      // This ensures the route line updates in real-time as driver moves
+    }
+  }, [location, isNavigating, navigationPhase]);
+
+  // Monitor distance for arrival validation
+  useEffect(() => {
+    if (!location || !currentStop || !isNavigating || navigationPhase === 'complete') {
+      return;
+    }
+
+    const dist = getDistanceInMeters(
+      location.coords.latitude,
+      location.coords.longitude,
+      currentStop.latitude,
+      currentStop.longitude
+    );
+
+    setDistanceToDestination(dist);
+    setHasArrived(dist <= ARRIVAL_RADIUS);
+  }, [location, currentStop, isNavigating, navigationPhase]);
+
   // Get current delivery stops (pickup + delivery pair)
   const currentDeliveryStops = useMemo(() => {
     if (deliveries.length === 0 || currentDeliveryIndex >= deliveries.length) {
@@ -384,8 +650,8 @@ export default function NavigationScreen() {
     }
     return deliveries[currentDeliveryIndex].map((step) => ({
       id: step.id,
-      latitude: step.latitude,
-      longitude: step.longitude,
+      latitude: parseFloat(step.latitude as any) || 0,
+      longitude: parseFloat(step.longitude as any) || 0,
       name: step.name,
       type: step.type,
       address: step.address,
@@ -404,6 +670,8 @@ export default function NavigationScreen() {
     await startGPSTracking();
     setIsNavigating(true);
     setNavigationPhase('pickup');
+    setLiveDistance(null);
+    setLiveDuration(null);
   };
 
   const handleStopNavigation = () => {
@@ -411,6 +679,8 @@ export default function NavigationScreen() {
     setIsNavigating(false);
     setNavigationPhase('preview');
     setCurrentStep(0);
+    setLiveDistance(null);
+    setLiveDuration(null);
   };
 
   const getIconName = (icon: string): any => {
@@ -435,10 +705,175 @@ export default function NavigationScreen() {
     }
   };
 
+  // Camera & Gallery permissions & action handlers
+  const handleTakePhoto = async () => {
+    try {
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+      if (cameraPermission.status !== 'granted') {
+        Alert.alert('Permission Required', 'We need access to your camera to take a proof of delivery photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPodImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      Alert.alert('Error', 'An error occurred while taking a photo.');
+    }
+  };
+
+  const handleChooseFromGallery = async () => {
+    try {
+      const galleryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (galleryPermission.status !== 'granted') {
+        Alert.alert('Permission Required', 'We need access to your library to choose a proof of delivery photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPodImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Gallery error:', error);
+      Alert.alert('Error', 'An error occurred while choosing a photo.');
+    }
+  };
+
+  // Submit Proof of Delivery & mark delivery as completed
+  const handleFinalConfirmDelivery = async () => {
+    if (!currentStop) {
+      Alert.alert('Error', 'No active stop found.');
+      return;
+    }
+
+    if (!podImage) {
+      Alert.alert('Upload Required', 'Please upload proof of delivery before confirming.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+
+      const formData = new FormData();
+      formData.append('_method', 'PUT'); // Method spoofing for Laravel multipart PUT file uploads
+      formData.append('delivery_status', 'delivered');
+
+      if (podRemarks.trim()) {
+        formData.append('remarks', podRemarks.trim());
+      }
+
+      if (location?.coords) {
+        formData.append('actual_delivery_latitude', location.coords.latitude.toString());
+        formData.append('actual_delivery_longitude', location.coords.longitude.toString());
+      }
+
+      // Format proof image for React Native upload
+      const filename = podImage.split('/').pop() || 'proof.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const fileType = match ? `image/${match[1]}` : `image/jpeg`;
+
+      formData.append('proof_image', {
+        uri: Platform.OS === 'ios' ? podImage.replace('file://', '') : podImage,
+        name: filename,
+        type: fileType,
+      } as any);
+
+      console.log('Uploading Proof of Delivery (POD) for delivery_id:', currentStop.delivery_id);
+
+      const response = await api.post(`/deliveries/${currentStop.delivery_id}/status`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('POD Upload Response:', response.data);
+
+      if (response.data.success) {
+        // Close modal first
+        setPodModalVisible(false);
+        setIsUploading(false);
+
+        // Check if there are more deliveries
+        if (currentDeliveryIndex < deliveries.length - 1) {
+          // Move to next delivery
+          setCurrentDeliveryIndex(prev => prev + 1);
+          // Find first step of next delivery
+          const nextDelivery = deliveries[currentDeliveryIndex + 1];
+          if (nextDelivery && nextDelivery.length > 0) {
+            const nextGlobalIndex = navSteps.findIndex(s => s.id === nextDelivery[0].id);
+            setCurrentStep(nextGlobalIndex >= 0 ? nextGlobalIndex : currentStep + 1);
+          }
+          // Reset to pickup phase for next delivery
+          setNavigationPhase('pickup');
+
+          Alert.alert(
+            '✅ Delivery Complete',
+            'Moving to next delivery!',
+            [{ text: 'OK' }]
+          );
+        } else {
+          // All deliveries complete
+          setNavigationPhase('complete');
+          setIsNavigating(false);
+
+          // Refresh data to check for new deliveries
+          Alert.alert(
+            '🎉 All Deliveries Complete!',
+            'Great job! You have completed all deliveries.\n\nChecking for new assignments...',
+            [{
+              text: 'OK',
+              onPress: () => {
+                lastDeliveryFetchRef.current = 0; // Reset throttle timer
+                fetchDeliveries();
+              }
+            }]
+          );
+
+          setTimeout(() => {
+            lastDeliveryFetchRef.current = 0; // Reset throttle timer
+            fetchDeliveries();
+          }, 3000);
+        }
+      } else {
+        Alert.alert('Error', response.data.message || 'Failed to submit proof. Please try again.');
+        setIsUploading(false);
+      }
+    } catch (error: any) {
+      console.error('POD submit error:', error);
+      const errorMsg = error.response?.data?.message || 'Failed to upload proof of delivery. Please try again.';
+      Alert.alert('Submission Failed', errorMsg);
+      setIsUploading(false);
+    }
+  };
+
   // Complete current step and update delivery status with phase management
   const handleCompleteStep = async () => {
     if (!currentStop || deliveries.length === 0) {
       Alert.alert('Error', 'No active stop or delivery found.');
+      return;
+    }
+
+    // Strict Arrival Validation
+    if (distanceToDestination !== null && distanceToDestination > ARRIVAL_RADIUS) {
+      Alert.alert(
+        "Not Yet Arrived",
+        `You must arrive at the destination before confirming.\n\nYou are currently ${Math.round(distanceToDestination)} meters away.`
+      );
       return;
     }
 
@@ -470,6 +905,8 @@ export default function NavigationScreen() {
 
         // Switch to delivery phase on map
         setNavigationPhase('delivery');
+        setLiveDistance(null);
+        setLiveDuration(null);
 
         Alert.alert(
           '✅ Pickup Complete',
@@ -477,54 +914,10 @@ export default function NavigationScreen() {
           [{ text: 'OK' }]
         );
       } else {
-        // Delivery complete
-        await api.put(`/deliveries/${currentStop.delivery_id}/status`, {
-          delivery_status: 'delivered'
-        });
-
-        // Check if there are more deliveries
-        if (currentDeliveryIndex < deliveries.length - 1) {
-          // Move to next delivery
-          setCurrentDeliveryIndex(prev => prev + 1);
-          // Find first step of next delivery
-          const nextDelivery = deliveries[currentDeliveryIndex + 1];
-          if (nextDelivery && nextDelivery.length > 0) {
-            const nextGlobalIndex = navSteps.findIndex(s => s.id === nextDelivery[0].id);
-            setCurrentStep(nextGlobalIndex >= 0 ? nextGlobalIndex : currentStep + 1);
-          }
-          // Reset to pickup phase for next delivery
-          setNavigationPhase('pickup');
-
-          Alert.alert(
-            '✅ Delivery Complete',
-            'Moving to next delivery!',
-            [{ text: 'OK' }]
-          );
-        } else {
-          // All deliveries complete
-          setNavigationPhase('complete');
-          setIsNavigating(false);
-
-          // Refresh data to check for new deliveries instead of redirecting
-          Alert.alert(
-            '🎉 All Deliveries Complete!',
-            'Great job! You have completed all deliveries.\n\nChecking for new assignments...',
-            [{ 
-              text: 'OK', 
-              onPress: () => {
-                // Force refresh deliveries data
-                lastDeliveryFetchRef.current = 0; // Reset throttle timer
-                fetchDeliveries();
-              }
-            }]
-          );
-          
-          // Also auto-refresh after 3 seconds in case they dismiss alert quickly
-          setTimeout(() => {
-            lastDeliveryFetchRef.current = 0; // Reset throttle timer
-            fetchDeliveries();
-          }, 3000);
-        }
+        // Intercept delivery completion and open custom POD modal
+        setPodImage(null);
+        setPodRemarks('');
+        setPodModalVisible(true);
       }
     } catch (error) {
       console.error('Failed to complete step:', error);
@@ -605,7 +998,7 @@ export default function NavigationScreen() {
     if (navigationPhase === 'pickup') {
       return {
         text: 'Head to pickup location',
-        distance: currentStop?.distance || '0 km',
+        distance: liveDistance || currentStop?.distance || '0 km',
         street: currentStop?.address?.split(',')[0] || 'Pickup point',
         icon: 'arrow-up-circle' as const,
         color: '#16A34A',
@@ -613,7 +1006,7 @@ export default function NavigationScreen() {
     } else if (navigationPhase === 'delivery') {
       return {
         text: 'Deliver to destination',
-        distance: currentStop?.distance || '0 km',
+        distance: liveDistance || currentStop?.distance || '0 km',
         street: currentStop?.address?.split(',')[0] || 'Delivery point',
         icon: 'location' as const,
         color: '#EF4444',
@@ -643,7 +1036,7 @@ export default function NavigationScreen() {
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Navigation</Text>
           <Text style={styles.headerEta}>
-            {isNavigating ? `ETA ${currentStop?.duration || '10 min'}` : 'Ready'}
+            {isNavigating ? `ETA ${liveDuration || currentStop?.duration || '10 min'}` : 'Ready'}
           </Text>
         </View>
         <TouchableOpacity style={styles.headerVoiceButton}>
@@ -660,6 +1053,11 @@ export default function NavigationScreen() {
           navigationPhase={navigationPhase}
           showRouteLine={isNavigating}
           heading={location?.coords?.heading || null}
+          isGpsEnabled={gpsEnabled}
+          onRouteUpdate={(distance, duration) => {
+            setLiveDistance(distance);
+            setLiveDuration(duration);
+          }}
         />
 
         {/* Floating Navigation Instruction Card */}
@@ -776,16 +1174,31 @@ export default function NavigationScreen() {
             </TouchableOpacity>
           )
         ) : (
-          <View style={styles.activeNavControls}>
-            <TouchableOpacity
-              style={styles.completeNavButton}
-              onPress={handleCompleteStep}
-            >
-              <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
-              <Text style={styles.completeNavText}>
-                {currentStop?.type === 'pickup' ? 'Confirm Pickup' : 'Confirm Delivery'}
-              </Text>
-            </TouchableOpacity>
+          <View style={{ marginBottom: 12 }}>
+            {distanceToDestination !== null && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8, gap: 6 }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasArrived ? '#10B981' : '#EF4444' }} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: hasArrived ? '#10B981' : '#EF4444' }}>
+                  {hasArrived ? 'Arrived at Destination' : `Not Arrived - ${Math.round(distanceToDestination)}m remaining`}
+                </Text>
+              </View>
+            )}
+            <View style={[styles.activeNavControls, { marginBottom: 0 }]}>
+              <TouchableOpacity
+                style={[
+                  styles.completeNavButton,
+                  !hasArrived && { backgroundColor: '#94A3B8' }
+                ]}
+                onPress={handleCompleteStep}
+                disabled={!hasArrived}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+                <Text style={styles.completeNavText}>
+                  {currentStop?.type === 'pickup' ? 'Confirm Pickup' : 'Confirm Delivery'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -814,6 +1227,158 @@ export default function NavigationScreen() {
           </View>
         </View>
       </Animated.View>
+
+      {/* Proof of Delivery (POD) Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={podModalVisible}
+        onRequestClose={() => {
+          if (!isUploading) setPodModalVisible(false);
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContentContainer}>
+            {/* Modal Drag Indicator / Accent Bar */}
+            <View style={styles.modalAccentBar} />
+
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Proof of Delivery (POD)</Text>
+                <Text style={styles.modalSubtitle}>Waybill: #{currentStop?.waybill || 'N/A'}</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setPodModalVisible(false)}
+                disabled={isUploading}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={22} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollContent}
+            >
+              {/* Photo Upload Area (Required) */}
+              <Text style={styles.fieldLabel}>
+                Proof Image <Text style={{ color: '#EF4444' }}>* (Required)</Text>
+              </Text>
+
+              {podImage ? (
+                <View style={styles.previewImageContainer}>
+                  <Image source={{ uri: podImage }} style={styles.previewImage} />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => setPodImage(null)}
+                    disabled={isUploading}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.imageSelectorContainer}>
+                  <TouchableOpacity
+                    style={styles.selectorButton}
+                    onPress={handleTakePhoto}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.selectorIconBg, { backgroundColor: 'rgba(22, 163, 74, 0.1)' }]}>
+                      <Ionicons name="camera" size={28} color="#16A34A" />
+                    </View>
+                    <Text style={styles.selectorText}>Take Photo</Text>
+                  </TouchableOpacity>
+
+                  <View style={styles.selectorDivider} />
+
+                  <TouchableOpacity
+                    style={styles.selectorButton}
+                    onPress={handleChooseFromGallery}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.selectorIconBg, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                      <Ionicons name="images" size={28} color="#3B82F6" />
+                    </View>
+                    <Text style={styles.selectorText}>From Gallery</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Remarks / Notes (Optional) */}
+              <Text style={styles.fieldLabel}>Remarks / Notes <Text style={styles.optionalLabel}>(Optional)</Text></Text>
+              <TextInput
+                style={styles.remarksInput}
+                placeholder="e.g. Received by John Doe, packages in excellent condition..."
+                placeholderTextColor="#94A3B8"
+                multiline={true}
+                numberOfLines={3}
+                value={podRemarks}
+                onChangeText={setPodRemarks}
+                editable={!isUploading}
+              />
+
+              {/* Info Badges (GPS Lock & Timestamp) */}
+              <View style={styles.infoBadgesRow}>
+                <View style={styles.infoBadge}>
+                  <Ionicons
+                    name={location ? "location" : "location-outline"}
+                    size={14}
+                    color={location ? "#16A34A" : "#94A3B8"}
+                  />
+                  <Text style={[styles.infoBadgeText, location && { color: '#16A34A', fontWeight: '600' }]}>
+                    {location
+                      ? `GPS Locked (${location.coords.latitude.toFixed(4)}, ${location.coords.longitude.toFixed(4)})`
+                      : 'GPS Unavailable'
+                    }
+                  </Text>
+                </View>
+
+                <View style={styles.infoBadge}>
+                  <Ionicons name="time-outline" size={14} color="#3B82F6" />
+                  <Text style={styles.infoBadgeText}>
+                    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (Auto)
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* Modal Action Buttons */}
+            <View style={styles.modalActionButtonsRow}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setPodModalVisible(false)}
+                disabled={isUploading}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalSubmitButton,
+                  (!podImage || isUploading) && styles.modalSubmitButtonDisabled
+                ]}
+                onPress={handleFinalConfirmDelivery}
+                disabled={!podImage || isUploading}
+                activeOpacity={0.9}
+              >
+                {isUploading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-done" size={20} color="#FFFFFF" />
+                    <Text style={styles.modalSubmitButtonText}>Confirm Delivery</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -821,7 +1386,7 @@ export default function NavigationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
   },
 
   // Loading State
@@ -829,13 +1394,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
-    color: '#e3e2fa',
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600',
   },
 
   // Empty State (keep existing styles)
@@ -846,98 +1411,94 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     paddingVertical: 40,
   },
   emptyIconWrapper: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   emptyIconBg: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   emptyPulseRing: {
     position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 2,
-    borderColor: '#3BC240',
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
     backgroundColor: 'transparent',
   },
   emptyTitle: {
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: '800',
-    color: '#070907',
-    marginBottom: 12,
-    letterSpacing: -0.5,
+    color: '#0F172A',
+    marginBottom: 8,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#070907',
+    fontSize: 13,
+    color: '#64748B',
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
+    lineHeight: 20,
+    marginBottom: 20,
     paddingHorizontal: 8,
   },
   emptyStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3BC240',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 16,
-    marginBottom: 28,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#3BC240',
+    borderColor: '#E2E8F0',
   },
   emptyStatItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   emptyStatText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
   },
   emptyStatDivider: {
     width: 1,
-    height: 20,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
+    height: 16,
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: 12,
   },
   emptyActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3BC240',
-    paddingHorizontal: 28,
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 10,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 8,
   },
   emptyActionText: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '700',
   },
 
@@ -951,7 +1512,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#3BC240',
+    borderBottomColor: '#E2E8F0',
   },
   headerBackButton: {
     padding: 4,
@@ -961,22 +1522,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#e3e2fa',
-    letterSpacing: -0.3,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   headerEta: {
-    fontSize: 13,
-    color: '#070907',
+    fontSize: 11,
+    color: '#64748B',
     fontWeight: '600',
     marginTop: 2,
   },
   headerVoiceButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#070907',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -992,66 +1552,66 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     left: 16,
-    right: 80,
+    right: 72,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 14,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 12,
+    borderRadius: 14,
+    padding: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 6,
     borderWidth: 1,
-    borderColor: '#3BC240',
+    borderColor: '#E2E8F0',
   },
   navIconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   navContent: {
     flex: 1,
-    marginLeft: 14,
-    marginRight: 8,
+    marginLeft: 10,
+    marginRight: 6,
   },
   navInstruction: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#070907',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
     marginBottom: 2,
   },
   navStreet: {
-    fontSize: 14,
-    color: '#070907',
-    fontWeight: '500',
-    marginBottom: 6,
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+    marginBottom: 4,
   },
   navDistanceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#3BC240',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    gap: 4,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 3,
   },
   navDistanceText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#10B981',
   },
   navArrow: {
-    marginLeft: 4,
+    marginLeft: 2,
   },
 
   // Voice FAB
@@ -1059,61 +1619,61 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#3BC240',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
 
   // Bottom Sheet
   bottomSheet: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 28,
-    shadowColor: '#3BC240',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 24,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     elevation: 12,
   },
 
   // Drag Handle
   dragHandleContainer: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   dragHandle: {
-    width: 36,
+    width: 32,
     height: 4,
-    backgroundColor: '#070907',
+    backgroundColor: '#E2E8F0',
     borderRadius: 2,
   },
 
   // Progress Bar
   progressContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   progressTrack: {
-    height: 6,
-    backgroundColor: '#453c59',
-    borderRadius: 3,
+    height: 4,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 2,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3BC240',
-    borderRadius: 3,
+    backgroundColor: '#10B981',
+    borderRadius: 2,
   },
   progressLabels: {
     flexDirection: 'row',
@@ -1121,124 +1681,313 @@ const styles = StyleSheet.create({
   },
   progressStep: {
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   progressDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#070907',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#E2E8F0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   progressDotActive: {
-    backgroundColor: '#3BC240',
+    backgroundColor: '#10B981',
   },
   progressLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#94A3B8',
   },
   progressLabelActive: {
-    color: '#070907',
+    color: '#0F172A',
+    fontWeight: '800',
   },
 
   // Start Navigation Button
   startNavButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3BC240',
-    borderRadius: 16,
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
     padding: 6,
-    marginBottom: 16,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    marginBottom: 12,
   },
   startNavIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
-    backgroundColor: 'rgba(227, 226, 250, 0.2)',
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   startNavText: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 10,
   },
   startNavTitle: {
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
   },
   startNavSubtitle: {
-    fontSize: 13,
-    color: 'rgba(227, 226, 250, 0.8)',
-    marginTop: 2,
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 1,
   },
 
   // Active Navigation Controls
   activeNavControls: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   completeNavButton: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    backgroundColor: '#3BC240',
-    paddingVertical: 16,
-    borderRadius: 14,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
+    gap: 8,
+    backgroundColor: '#10B981',
+    paddingVertical: 14,
+    borderRadius: 10,
   },
   completeNavText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
   },
 
   // Delivery Info Card
   deliveryInfoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
   },
   deliveryInfoRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: 10,
   },
   deliveryInfoContent: {
     flex: 1,
   },
   deliveryInfoLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#070907',
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#94A3B8',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   deliveryInfoValue: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#070907',
-    lineHeight: 20,
+    color: '#0F172A',
+    lineHeight: 18,
   },
   deliveryDivider: {
     height: 1,
-    backgroundColor: '#3BC240',
-    marginVertical: 12,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 10,
+  },
+
+  // Proof of Delivery Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContentContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    maxHeight: '90%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 24,
+  },
+  modalAccentBar: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E2E8F0',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalScrollContent: {
+    paddingBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  optionalLabel: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+  imageSelectorContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    paddingVertical: 24,
+    paddingHorizontal: 12,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  selectorButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectorIconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  selectorText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  selectorDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#E2E8F0',
+  },
+  previewImageContainer: {
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 16,
+  },
+  previewImage: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  remarksInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: '#0F172A',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  infoBadgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+  },
+  infoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    gap: 4,
+  },
+  infoBadgeText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  modalActionButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  modalSubmitButton: {
+    flex: 2,
+    flexDirection: 'row',
+    backgroundColor: '#10B981',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  modalSubmitButtonDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  modalSubmitButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

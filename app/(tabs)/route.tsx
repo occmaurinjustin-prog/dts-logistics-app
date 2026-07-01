@@ -4,17 +4,17 @@ import axios from 'axios';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    Modal,
-    Platform,
-    RefreshControl,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  Modal,
+  Platform,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -22,7 +22,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // API URL - same as deliveries
 const API_BASE_URL = Platform.OS === 'web' 
   ? 'http://localhost:8000/api'
-  : 'http://10.26.16.24:8000/api';
+  : 'http://10.65.49.24:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -49,7 +49,7 @@ interface Stop {
   status: string;
   estimated_arrival: string;
   weight: string;
-  tracking_number: string;
+  waybill: string;
   notes?: string;
 }
 
@@ -102,7 +102,7 @@ const transformDeliveriesToRoute = (deliveries: any[]): Route | null => {
         status: pickupCompleted ? 'completed' : 'pending',
         estimated_arrival: delivery.eta || new Date(Date.now() + index * 3600000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         weight: delivery.weight || `${delivery.weight_tons} tons`,
-        tracking_number: delivery.tracking_number || `DEL${String(index + 1).padStart(3, '0')}`,
+        waybill: delivery.waybill || `DEL${String(index + 1).padStart(3, '0')}`,
         notes: `Pick up: ${delivery.item_description || 'Items'}`,
       });
     }
@@ -120,7 +120,7 @@ const transformDeliveriesToRoute = (deliveries: any[]): Route | null => {
         status: delivery.delivery_status === 'delivered' ? 'completed' : (pickupCompleted && index === 0 ? 'in_progress' : 'pending'),
         estimated_arrival: delivery.eta || new Date(Date.now() + (index + 1) * 3600000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         weight: delivery.weight || `${delivery.weight_tons} tons`,
-        tracking_number: delivery.tracking_number || `DEL${String(index + 1).padStart(3, '0')}`,
+        waybill: delivery.waybill || `DEL${String(index + 1).padStart(3, '0')}`,
         notes: delivery.notes || `Deliver to: ${delivery.delivery_address || delivery.address}`,
       });
     }
@@ -220,12 +220,12 @@ export default function RouteScreen() {
 
   const getStopIcon = (type: string, status: string, index: number) => {
     if (status === 'completed') {
-      return <Ionicons name="checkmark-circle" size={24} color="#10B981" />;
+      return <Ionicons name="checkmark-circle" size={20} color="#10B981" />;
     }
     if (type === 'pickup') {
-      return <Ionicons name="arrow-up-circle" size={24} color="#3B82F6" />;
+      return <Ionicons name="arrow-up-circle" size={20} color="#3B82F6" />;
     }
-    return <Ionicons name="location" size={24} color={index === activeStop ? '#F59E0B' : '#6B7280'} />;
+    return <Ionicons name="location" size={20} color={index === activeStop ? '#EF4444' : '#64748B'} />;
   };
 
   const selectedRouteData = routes.find(r => r.id === selectedRoute);
@@ -234,6 +234,10 @@ export default function RouteScreen() {
     const isActive = index === activeStop;
     const isCompleted = stop.status === 'completed';
     const isLast = index === totalStops - 1;
+
+    // Soft palette color scheme
+    const themeColor = stop.type === 'pickup' ? '#2563EB' : '#059669';
+    const badgeBg = stop.type === 'pickup' ? '#EFF6FF' : '#ECFDF5';
 
     return (
       <View key={stop.id} style={styles.stopItem}>
@@ -247,6 +251,7 @@ export default function RouteScreen() {
             <Text style={[
               styles.timelineNumber,
               (isCompleted || isActive) && styles.timelineNumberActive,
+              isCompleted && { color: '#10B981' }
             ]}>
               {index + 1}
             </Text>
@@ -274,10 +279,10 @@ export default function RouteScreen() {
               ]}>
                 <Ionicons 
                   name={stop.type === 'pickup' ? 'arrow-up' : 'arrow-down'} 
-                  size={12} 
-                  color="#FFFFFF" 
+                  size={10} 
+                  color={themeColor} 
                 />
-                <Text style={styles.stopTypeText}>
+                <Text style={[styles.stopTypeText, { color: themeColor }]}>
                   {stop.type === 'pickup' ? 'PICKUP' : 'DELIVERY'}
                 </Text>
               </View>
@@ -295,7 +300,7 @@ export default function RouteScreen() {
           
           {/* Address */}
           <View style={styles.addressRow}>
-            <Ionicons name="location-outline" size={16} color="#6B7280" />
+            <Ionicons name="location-outline" size={14} color="#64748B" />
             <Text style={styles.stopAddress} numberOfLines={2}>
               {stop.type === 'pickup' ? stop.address : stop.delivery_address}
             </Text>
@@ -303,26 +308,26 @@ export default function RouteScreen() {
 
           {/* Contact */}
           <View style={styles.contactRow}>
-            <Ionicons name="call-outline" size={14} color="#6B7280" />
+            <Ionicons name="call-outline" size={12} color="#64748B" />
             <Text style={styles.stopContact}>{stop.contact}</Text>
           </View>
 
           {/* Weight & Tracking */}
           <View style={styles.stopMeta}>
             <View style={styles.metaItem}>
-              <Ionicons name="cube-outline" size={14} color="#6B7280" />
+              <Ionicons name="cube-outline" size={12} color="#64748B" />
               <Text style={styles.metaText}>{stop.weight}</Text>
             </View>
             <View style={styles.metaItem}>
-              <Ionicons name="barcode-outline" size={14} color="#6B7280" />
-              <Text style={styles.metaText}>#{stop.tracking_number}</Text>
+              <Ionicons name="barcode-outline" size={12} color="#64748B" />
+              <Text style={styles.metaText}>#{stop.waybill}</Text>
             </View>
           </View>
 
           {/* Notes */}
           {stop.notes && (
             <View style={styles.notesContainer}>
-              <Ionicons name="information-circle-outline" size={14} color="#F59E0B" />
+              <Ionicons name="information-circle-outline" size={12} color="#F59E0B" />
               <Text style={styles.notesText}>{stop.notes}</Text>
             </View>
           )}
@@ -336,8 +341,8 @@ export default function RouteScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3B82F6" />
-          <Text style={styles.loadingText}>Loading route...</Text>
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text style={styles.loadingText}>Synchronizing route...</Text>
         </View>
       </SafeAreaView>
     );
@@ -357,11 +362,11 @@ export default function RouteScreen() {
         </View>
         <ScrollView 
           style={styles.scrollView}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3B82F6']} tintColor="#3B82F6" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />}
           contentContainerStyle={styles.emptyScrollContent}
         >
           <View style={styles.emptyContainer}>
-            <Ionicons name="map-outline" size={80} color="#3BC240" />
+            <Ionicons name="map-outline" size={60} color="#94A3B8" />
             <Text style={styles.emptyTitle}>No Active Route</Text>
             <Text style={styles.emptyText}>
               You don't have any assigned deliveries yet.{'\n'}
@@ -385,12 +390,12 @@ export default function RouteScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.headerTitle}>Routes</Text>
-            <Text style={styles.headerSubtitle}>{selectedRouteData?.name || 'Today\'s Route'}</Text>
+            <Text style={styles.headerTitle}>Today's Route</Text>
+            <Text style={styles.headerSubtitle}>{selectedRouteData?.name || 'Active Dispatch Stop List'}</Text>
           </View>
           <TouchableOpacity style={styles.mapButton} onPress={() => router.push('/navigation')}>
-            <Ionicons name="map-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.mapButtonText}>Map</Text>
+            <Ionicons name="map-outline" size={16} color="#FFFFFF" />
+            <Text style={styles.mapButtonText}>Map HUD</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -398,14 +403,14 @@ export default function RouteScreen() {
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3B82F6']} tintColor="#3B82F6" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />}
       >
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
-            <Ionicons name="navigate-circle" size={32} color="#3B82F6" />
+            <Ionicons name="navigate-circle" size={28} color="#10B981" />
             <View style={styles.summaryTitleContainer}>
-              <Text style={styles.summaryTitle}>Route Summary</Text>
+              <Text style={styles.summaryTitle}>Route Dispatch Summary</Text>
               <Text style={styles.summaryDate}>{selectedRouteData?.date}</Text>
             </View>
           </View>
@@ -413,7 +418,7 @@ export default function RouteScreen() {
           <View style={styles.summaryStats}>
             <View style={styles.statItem}>
               <View style={[styles.statIcon, { backgroundColor: '#EFF6FF' }]}>
-                <Ionicons name="cube" size={20} color="#3B82F6" />
+                <Ionicons name="cube" size={16} color="#3B82F6" />
               </View>
               <Text style={styles.statValue}>{selectedRouteData?.total_stops || 0}</Text>
               <Text style={styles.statLabel}>Stops</Text>
@@ -423,7 +428,7 @@ export default function RouteScreen() {
 
             <View style={styles.statItem}>
               <View style={[styles.statIcon, { backgroundColor: '#FEF3C7' }]}>
-                <Ionicons name="time" size={20} color="#F59E0B" />
+                <Ionicons name="time" size={16} color="#F59E0B" />
               </View>
               <Text style={styles.statValue}>{selectedRouteData?.estimated_time || '0m'}</Text>
               <Text style={styles.statLabel}>Est. Time</Text>
@@ -433,7 +438,7 @@ export default function RouteScreen() {
 
             <View style={styles.statItem}>
               <View style={[styles.statIcon, { backgroundColor: '#ECFDF5' }]}>
-                <Ionicons name="speedometer" size={20} color="#10B981" />
+                <Ionicons name="speedometer" size={16} color="#10B981" />
               </View>
               <Text style={styles.statValue}>{selectedRouteData?.total_distance || '0 km'}</Text>
               <Text style={styles.statLabel}>Distance</Text>
@@ -443,7 +448,7 @@ export default function RouteScreen() {
           {/* Progress Bar */}
           <View style={styles.progressContainer}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressText}>Progress</Text>
+              <Text style={styles.progressText}>Route Completion Progress</Text>
               <Text style={styles.progressPercent}>
                 {selectedRouteData?.total_stops 
                   ? Math.round(((selectedRouteData?.completed_stops || 0) / selectedRouteData.total_stops) * 100)
@@ -466,7 +471,7 @@ export default function RouteScreen() {
         {/* Stops Section */}
         <View style={styles.stopsSection}>
           <View style={styles.stopsHeader}>
-            <Text style={styles.stopsTitle}>Delivery Stops</Text>
+            <Text style={styles.stopsTitle}>Route Stops List</Text>
             <Text style={styles.stopsCount}>{selectedRouteData?.stops?.length || 0} stops</Text>
           </View>
 
@@ -483,16 +488,16 @@ export default function RouteScreen() {
             style={styles.primaryActionButton}
             onPress={() => router.push('/navigation')}
           >
-            <Ionicons name="navigate" size={24} color="#FFFFFF" />
-            <Text style={styles.primaryActionText}>Start Navigation</Text>
+            <Ionicons name="navigate" size={18} color="#FFFFFF" />
+            <Text style={styles.primaryActionText}>Start Live Navigation</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.secondaryActionButton}
             onPress={() => setShowFullMap(true)}
           >
-            <Ionicons name="map-outline" size={20} color="#3BC240" />
-            <Text style={styles.secondaryActionText}>View Full Map</Text>
+            <Ionicons name="map-outline" size={16} color="#0F172A" />
+            <Text style={styles.secondaryActionText}>View Full Route Stops</Text>
           </TouchableOpacity>
         </View>
 
@@ -510,25 +515,25 @@ export default function RouteScreen() {
           {/* Modal Header */}
           <View style={styles.fullscreenMapHeader}>
             <TouchableOpacity onPress={() => setShowFullMap(false)} style={styles.closeMapButton}>
-              <Ionicons name="close" size={28} color="#e3e2fa" />
+              <Ionicons name="close" size={20} color="#64748B" />
             </TouchableOpacity>
-            <Text style={styles.fullscreenMapTitle}>Route Map</Text>
-            <View style={{ width: 44 }} />
+            <Text style={styles.fullscreenMapTitle}>Route Stops Index</Text>
+            <View style={{ width: 36 }} />
           </View>
 
           {/* Simple Map Placeholder - Shows stops list as map view */}
           <ScrollView style={styles.fullscreenMapContent}>
             <View style={styles.mapLegend}>
               <View style={styles.mapLegendItem}>
-                <View style={[styles.mapLegendDot, { backgroundColor: '#7059BC' }]} />
-                <Text style={styles.mapLegendText}>Pickup</Text>
+                <View style={[styles.mapLegendDot, { backgroundColor: '#3B82F6' }]} />
+                <Text style={styles.mapLegendText}>Pickup Stop</Text>
               </View>
               <View style={styles.mapLegendItem}>
-                <View style={[styles.mapLegendDot, { backgroundColor: '#e3e2fa' }]} />
-                <Text style={styles.mapLegendText}>Delivery</Text>
+                <View style={[styles.mapLegendDot, { backgroundColor: '#10B981' }]} />
+                <Text style={styles.mapLegendText}>Delivery Drop</Text>
               </View>
               <View style={styles.mapLegendItem}>
-                <View style={[styles.mapLegendDot, { backgroundColor: '#453c59' }]} />
+                <View style={[styles.mapLegendDot, { backgroundColor: '#94A3B8' }]} />
                 <Text style={styles.mapLegendText}>Completed</Text>
               </View>
             </View>
@@ -539,24 +544,29 @@ export default function RouteScreen() {
                 <View key={stop.id} style={styles.mapStopItem}>
                   <View style={[
                     styles.mapStopNumber,
-                    stop.status === 'completed' && { backgroundColor: '#453c59' },
-                    stop.type === 'pickup' && { backgroundColor: '#7059BC' },
-                    stop.type === 'delivery' && { backgroundColor: '#e3e2fa' },
+                    stop.status === 'completed' && { backgroundColor: '#F1F5F9' },
+                    stop.status !== 'completed' && stop.type === 'pickup' && { backgroundColor: '#EFF6FF' },
+                    stop.status !== 'completed' && stop.type === 'delivery' && { backgroundColor: '#ECFDF5' },
                   ]}>
                     <Text style={[
                       styles.mapStopNumberText,
-                      stop.type === 'delivery' && { color: '#2F2C3D' },
+                      stop.status === 'completed' && { color: '#94A3B8' },
+                      stop.status !== 'completed' && stop.type === 'pickup' && { color: '#2563EB' },
+                      stop.status !== 'completed' && stop.type === 'delivery' && { color: '#047857' },
                     ]}>{index + 1}</Text>
                   </View>
                   <View style={styles.mapStopContent}>
-                    <Text style={styles.mapStopType}>{stop.type.toUpperCase()}</Text>
+                    <Text style={[
+                      styles.mapStopType,
+                      stop.type === 'pickup' ? { color: '#2563EB' } : { color: '#047857' }
+                    ]}>{stop.type.toUpperCase()}</Text>
                     <Text style={styles.mapStopCustomer}>{stop.customer}</Text>
                     <Text style={styles.mapStopAddress}>{stop.address}</Text>
                   </View>
                   <Ionicons 
                     name={stop.status === 'completed' ? 'checkmark-circle' : 'location'} 
-                    size={24} 
-                    color={stop.status === 'completed' ? '#453c59' : '#7059BC'} 
+                    size={20} 
+                    color={stop.status === 'completed' ? '#10B981' : '#64748B'} 
                   />
                 </View>
               ))}
@@ -570,8 +580,8 @@ export default function RouteScreen() {
                 router.push('/navigation');
               }}
             >
-              <Ionicons name="navigate" size={24} color="#e3e2fa" />
-              <Text style={styles.fullscreenNavigateText}>Start Navigation</Text>
+              <Ionicons name="navigate" size={18} color="#FFFFFF" />
+              <Text style={styles.fullscreenNavigateText}>Launch Navigation HUD</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -583,19 +593,19 @@ export default function RouteScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#070907',
+    backgroundColor: '#F8FAFC',
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
-    color: '#070907',
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600',
   },
 
   // Header
@@ -603,14 +613,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#3BC240',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 4,
+    borderBottomColor: '#E2E8F0',
   },
   headerContent: {
     flexDirection: 'row',
@@ -618,34 +623,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 22,
     fontWeight: '800',
-    color: '#070907',
-    letterSpacing: -0.5,
+    color: '#0F172A',
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#070907',
-    marginTop: 4,
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    fontWeight: '600',
   },
   mapButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
-    shadowColor: '#070907',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
   },
   mapButtonText: {
-    color: '#070907',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700',
   },
 
@@ -657,34 +656,34 @@ const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: '#FFFFFF',
     margin: 16,
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#3BC240',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 6,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 2,
   },
   summaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   summaryTitleContainer: {
-    marginLeft: 12,
+    marginLeft: 10,
   },
   summaryTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#070907',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   summaryDate: {
-    fontSize: 14,
-    color: '#070907',
+    fontSize: 12,
+    color: '#64748B',
     marginTop: 2,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 
   // Stats
@@ -692,71 +691,73 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
   statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#070907',
+    color: '#0F172A',
     marginBottom: 2,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#070907',
-    fontWeight: '600',
+    fontSize: 10,
+    color: '#94A3B8',
+    fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   statDivider: {
     width: 1,
-    height: 50,
-    backgroundColor: '#070907',
+    height: 36,
+    backgroundColor: '#E2E8F0',
   },
 
   // Progress
   progressContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   progressText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#070907',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
   },
   progressPercent: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '800',
-    color: '#070907',
+    color: '#10B981',
   },
   progressBar: {
-    height: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3BC240',
-    borderRadius: 4,
+    backgroundColor: '#10B981',
+    borderRadius: 3,
   },
 
   // Stops Section
@@ -768,24 +769,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     paddingHorizontal: 4,
   },
   stopsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#070907',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   stopsCount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#070907',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#3BC240',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#10B981',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   stopsList: {
     gap: 0,
@@ -797,236 +796,212 @@ const styles = StyleSheet.create({
   },
   timelineContainer: {
     alignItems: 'center',
-    width: 40,
-    marginRight: 12,
+    width: 32,
+    marginRight: 10,
   },
   timelineDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#3BC240',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
     zIndex: 10,
   },
   timelineDotActive: {
-    backgroundColor: '#FFFFFF',
+    borderColor: '#10B981',
+    backgroundColor: '#10B981',
   },
   timelineDotCompleted: {
-    backgroundColor: '#FFFFFF',
+    borderColor: '#10B981',
+    backgroundColor: '#ECFDF5',
   },
   timelineNumber: {
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '800',
-    color: '#070907',
+    color: '#64748B',
   },
   timelineNumberActive: {
-    color: '#070907',
+    color: '#FFFFFF',
   },
   timelineLine: {
-    width: 3,
+    width: 2,
     flex: 1,
-    backgroundColor: '#3BC240',
-    marginTop: -4,
+    backgroundColor: '#E2E8F0',
+    marginTop: -2,
   },
   timelineLineCompleted: {
-    backgroundColor: '#3BC240',
+    backgroundColor: '#10B981',
   },
 
   // Stop Card
   stopCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#3BC240',
+    borderColor: '#E2E8F0',
   },
   stopCardActive: {
-    borderColor: '#3BC240',
-    borderWidth: 2,
-    shadowColor: '#3BC240',
-    shadowOpacity: 0.15,
+    borderColor: '#10B981',
+    borderWidth: 1.5,
   },
   stopCardCompleted: {
-    borderColor: '#453c59',
-    opacity: 0.8,
+    borderColor: '#E2E8F0',
+    opacity: 0.75,
   },
   stopHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   stopTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   stopTypeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 3,
   },
   pickupBadge: {
-    backgroundColor: '#3BC240',
+    backgroundColor: '#EEF2F6',
   },
   deliveryBadge: {
-    backgroundColor: '#3BC240',
+    backgroundColor: '#ECFDF5',
   },
   stopTypeText: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '800',
-    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   stopTime: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#070907',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
   },
   activeBadge: {
-    backgroundColor: '#070907',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   activeBadgeText: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   stopCustomer: {
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#070907',
-    marginBottom: 8,
+    color: '#0F172A',
+    marginBottom: 6,
   },
   addressRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 6,
+    gap: 6,
+    marginBottom: 4,
   },
   stopAddress: {
     flex: 1,
-    fontSize: 14,
-    color: '#070907',
-    lineHeight: 20,
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 16,
+    fontWeight: '600',
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 10,
+    marginBottom: 6,
   },
   stopContact: {
-    fontSize: 13,
-    color: '#070907',
-    fontWeight: '500',
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
   },
   stopMeta: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 10,
+    gap: 12,
+    marginBottom: 6,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
   },
   metaText: {
-    fontSize: 12,
-    color: '#070907',
+    fontSize: 11,
+    color: '#64748B',
     fontWeight: '600',
   },
   notesContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 6,
-    backgroundColor: '#FFFFFF',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
+    padding: 8,
+    borderRadius: 8,
     marginTop: 4,
     borderWidth: 1,
-    borderColor: '#3BC240',
+    borderColor: '#E2E8F0',
   },
   notesText: {
     flex: 1,
-    fontSize: 12,
-    color: '#070907',
-    fontWeight: '500',
-    lineHeight: 18,
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+    lineHeight: 16,
   },
 
   // Action Buttons
   actionContainer: {
     padding: 16,
-    gap: 12,
+    gap: 8,
   },
   primaryActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3BC240',
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 10,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: '#0F172A',
+    paddingVertical: 14,
+    borderRadius: 10,
+    gap: 8,
   },
   primaryActionText: {
     color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+    fontSize: 14,
+    fontWeight: '700',
   },
   secondaryActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
-    borderRadius: 16,
-    gap: 8,
-    borderWidth: 2,
-    borderColor: '#3BC240',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   secondaryActionText: {
-    color: '#3BC240',
-    fontSize: 15,
+    color: '#0F172A',
+    fontSize: 13,
     fontWeight: '700',
   },
   bottomSpacing: {
-    height: 100,
+    height: 80,
   },
 
   // Empty State Styles
@@ -1037,168 +1012,157 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 60,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   emptyTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#070907',
-    marginTop: 20,
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 16,
+    marginBottom: 4,
   },
   emptyText: {
-    fontSize: 15,
-    color: '#070907',
+    fontSize: 13,
+    color: '#64748B',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
+    lineHeight: 18,
+    marginBottom: 16,
   },
   emptyActionButton: {
-    backgroundColor: '#3BC240',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
   emptyActionText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
   },
 
   // Fullscreen Map Modal Styles
   fullscreenMapContainer: {
     flex: 1,
-    backgroundColor: '#2F2C3D',
+    backgroundColor: '#F8FAFC',
   },
   fullscreenMapHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
-    backgroundColor: '#2F2C3D',
+    paddingBottom: 12,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#7059BC',
+    borderBottomColor: '#E2E8F0',
   },
   closeMapButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#453c59',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullscreenMapTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#e3e2fa',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   fullscreenMapContent: {
     flex: 1,
-    backgroundColor: '#2F2C3D',
-    padding: 20,
+    backgroundColor: '#F8FAFC',
+    padding: 16,
   },
   mapLegend: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 24,
-    marginBottom: 24,
-    paddingVertical: 16,
-    backgroundColor: '#453c59',
+    gap: 16,
+    marginBottom: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#7059BC',
+    borderColor: '#E2E8F0',
   },
   mapLegendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   mapLegendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   mapLegendText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#e3e2fa',
+    color: '#64748B',
   },
   mapStopsList: {
-    gap: 12,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 20,
   },
   mapStopItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#453c59',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#7059BC',
+    borderColor: '#E2E8F0',
   },
   mapStopNumber: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#7059BC',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EEF2F6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   mapStopNumberText: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#e3e2fa',
+    color: '#64748B',
   },
   mapStopContent: {
     flex: 1,
   },
   mapStopType: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '800',
-    color: '#7059BC',
-    marginBottom: 4,
+    color: '#10B981',
+    marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   mapStopCustomer: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#e3e2fa',
-    marginBottom: 4,
+    color: '#0F172A',
+    marginBottom: 2,
   },
   mapStopAddress: {
-    fontSize: 13,
-    color: '#e3e2fa',
-    lineHeight: 18,
+    fontSize: 11,
+    color: '#64748B',
+    lineHeight: 16,
   },
   fullscreenNavigateButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3BC240',
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 10,
-    marginBottom: 40,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: '#0F172A',
+    paddingVertical: 14,
+    borderRadius: 10,
+    gap: 8,
+    marginBottom: 32,
   },
   fullscreenNavigateText: {
     color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

@@ -3,52 +3,90 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [focusedField, setFocusedField] = useState<'username' | 'password' | null>(null);
+
+  const [focusedField, setFocusedField] = useState<
+    'username' | 'password' | null
+  >(null);
+
   const [rememberMe, setRememberMe] = useState(false);
 
+  // ERRORS
+  const [errors, setErrors] = useState({
+    username: '',
+    password: '',
+    general: '',
+  });
+
+  // VALIDATION
   const validateInputs = (): boolean => {
+    let valid = true;
+
+    const newErrors = {
+      username: '',
+      password: '',
+      general: '',
+    };
+
+    // EMAIL VALIDATION
     if (!username.trim()) {
-      setError('Please enter your username');
-      return false;
+      newErrors.username = 'Email is required';
+      valid = false;
+    } else if (!/\S+@\S+\.\S+/.test(username)) {
+      newErrors.username = 'Invalid email format';
+      valid = false;
     }
+
+    // PASSWORD VALIDATION
     if (!password.trim()) {
-      setError('Please enter your password');
-      return false;
+      newErrors.password = 'Password is required';
+      valid = false;
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+      valid = false;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return false;
-    }
-    return true;
+
+    setErrors(newErrors);
+
+    return valid;
   };
 
+  // LOGIN
   const handleLogin = async () => {
-    setError('');
+    // CLEAR OLD ERRORS
+    setErrors({
+      username: '',
+      password: '',
+      general: '',
+    });
 
+    // VALIDATE
     if (!validateInputs()) {
       return;
     }
 
-    if (isLoading) return; // Prevent double-click
+    // PREVENT DOUBLE CLICK
+    if (isLoading) return;
+
     setIsLoading(true);
 
     try {
@@ -57,36 +95,85 @@ export default function LoginScreen() {
         password,
       });
 
+      // SUCCESS
       if (response.success) {
-        console.log('Login successful, redirecting...');
-        // Check if running on web
+        console.log('Login successful');
+        console.log('Response user:', response.user);
+        console.log('Response user role:', response.user?.role);
+
         const isWeb = Platform.OS === 'web';
-        if (isWeb && typeof window !== 'undefined' && typeof window.location?.href === 'string') {
-          console.log('Web detected, reloading page to refresh auth state');
-          window.location.href = '/(tabs)';
+        const userRole = response.user?.role;
+
+        console.log('Is Web:', isWeb);
+        console.log('User Role:', userRole);
+        console.log('Is Mechanic:', userRole === 'mechanic');
+
+        if (
+          isWeb &&
+          typeof window !== 'undefined' &&
+          typeof window.location?.href === 'string'
+        ) {
+          const targetRoute = userRole === 'mechanic' ? '/(mechanic-tabs)' : '/(tabs)';
+          console.log('Redirecting to (web):', targetRoute);
+          window.location.href = targetRoute;
         } else {
-          // For mobile, use router navigation
-          console.log('Mobile detected, using router navigation');
           setTimeout(() => {
-            console.log('Redirecting to tabs...');
-            router.replace('/(tabs)');
+            const targetRoute = userRole === 'mechanic' ? '/(mechanic-tabs)' : '/(tabs)';
+            console.log('Redirecting to (mobile):', targetRoute);
+            router.replace(targetRoute as any);
           }, 500);
         }
       } else {
-        setError(response.message || 'Login failed. Please try again.');
+        // INVALID CREDENTIALS
+        if (
+          response.message?.toLowerCase().includes('invalid credentials')
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            password: 'Incorrect password',
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            general: response.message || 'Login failed',
+          }));
+        }
       }
     } catch (error: any) {
-      setError('An unexpected error occurred. Please try again.');
       console.error('Login error:', error);
+
+      // AXIOS 422 ERROR
+      if (error.response?.status === 422) {
+        const message =
+          error.response?.data?.message || 'Invalid credentials';
+
+        if (message.toLowerCase().includes('invalid credentials')) {
+          setErrors((prev) => ({
+            ...prev,
+            password: 'Incorrect password',
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            password: message,
+          }));
+        }
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          general: 'Server error. Please try again.',
+        }));
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  // FORGOT PASSWORD
   const handleForgotPassword = () => {
     Alert.alert(
       'Reset Password',
-      'Password reset functionality will be implemented. Contact support for assistance.',
+      'Password reset functionality will be implemented.',
       [{ text: 'OK' }]
     );
   };
@@ -94,129 +181,219 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardContainer}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            
+          <View style={styles.card}>
+            {/* TITLE */}
+            <Text style={styles.title}>DTS Driver App</Text>
 
-            {/* Login Card */}
-            <View style={styles.card}>
-              <Text style={styles.title}>DTS Driver App</Text>
-              <Text style={styles.subtitle}>Access your delivery dashboard</Text>
+            <Text style={styles.subtitle}>
+              Access your delivery dashboard
+            </Text>
 
-            {/* Error Message */}
-            {error ? (
+            {/* GENERAL ERROR */}
+            {errors.general ? (
               <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle" size={20} color="#DC2626" />
-                <Text style={styles.errorText}>{error}</Text>
+                <Ionicons
+                  name="alert-circle"
+                  size={20}
+                  color="#DC2626"
+                />
+
+                <Text style={styles.errorText}>
+                  {errors.general}
+                </Text>
               </View>
             ) : null}
 
-            {/* Username Input */}
+            {/* EMAIL */}
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Email</Text>
-              <View style={[
-                styles.inputContainer,
-                focusedField === 'username' && styles.inputContainerFocused,
-              ]}>
+
+              <View
+                style={[
+                  styles.inputContainer,
+                  focusedField === 'username' &&
+                    styles.inputContainerFocused,
+                  errors.username && styles.inputError,
+                ]}
+              >
                 <Ionicons
                   name="person-outline"
                   size={20}
-                  color={focusedField === 'username' ? '#9CA3AF' : '#3BC240'}
+                  color={
+                    focusedField === 'username'
+                      ? '#9CA3AF'
+                      : '#3BC240'
+                  }
                 />
+
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your email"
                   placeholderTextColor="#9CA3AF"
                   value={username}
-                  onChangeText={setUsername}
+                  onChangeText={(text) => {
+                    setUsername(text);
+
+                    // CLEAR EMAIL ERROR
+                    if (errors.username) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        username: '',
+                      }));
+                    }
+                  }}
                   onFocus={() => setFocusedField('username')}
                   onBlur={() => setFocusedField(null)}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  keyboardType="email-address"
                 />
               </View>
+
+              {/* EMAIL ERROR */}
+              {errors.username ? (
+                <Text style={styles.validationText}>
+                  {errors.username}
+                </Text>
+              ) : null}
             </View>
 
-            {/* Password Input */}
+            {/* PASSWORD */}
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Password</Text>
-              <View style={[
-                styles.inputContainer,
-                focusedField === 'password' && styles.inputContainerFocused,
-              ]}>
+
+              <View
+                style={[
+                  styles.inputContainer,
+                  focusedField === 'password' &&
+                    styles.inputContainerFocused,
+                  errors.password && styles.inputError,
+                ]}
+              >
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color={focusedField === 'password' ? '#9CA3AF' : '#3BC240'}
+                  color={
+                    focusedField === 'password'
+                      ? '#9CA3AF'
+                      : '#3BC240'
+                  }
                 />
+
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your password"
                   placeholderTextColor="#9CA3AF"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setPassword(text);
+
+                    // CLEAR PASSWORD ERROR
+                    if (errors.password) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        password: '',
+                      }));
+                    }
+                  }}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
                   secureTextEntry={!isPasswordVisible}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
+
                 <TouchableOpacity
-                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                  onPress={() =>
+                    setIsPasswordVisible(!isPasswordVisible)
+                  }
                   style={styles.eyeIcon}
                 >
                   <Ionicons
-                    name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'}
+                    name={
+                      isPasswordVisible
+                        ? 'eye-outline'
+                        : 'eye-off-outline'
+                    }
                     size={20}
                     color="#9CA3AF"
                   />
                 </TouchableOpacity>
               </View>
+
+              {/* PASSWORD ERROR */}
+              {errors.password ? (
+                <Text style={styles.validationText}>
+                  {errors.password}
+                </Text>
+              ) : null}
             </View>
 
-            {/* Remember Me & Forgot Password */}
+            {/* REMEMBER ME */}
             <View style={styles.rememberForgotContainer}>
               <TouchableOpacity
                 onPress={() => setRememberMe(!rememberMe)}
                 style={styles.checkboxContainer}
                 activeOpacity={0.7}
               >
-                <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    rememberMe && styles.checkboxChecked,
+                  ]}
+                >
                   {rememberMe && (
-                    <Ionicons name="checkmark" size={14} color="#3BC240" />
+                    <Ionicons
+                      name="checkmark"
+                      size={14}
+                      color="#3BC240"
+                    />
                   )}
                 </View>
-                <Text style={styles.checkboxLabel}>Remember me</Text>
+
+                <Text style={styles.checkboxLabel}>
+                  Remember me
+                </Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 onPress={handleForgotPassword}
-                style={styles.forgotPasswordContainer}
               >
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                <Text style={styles.forgotPasswordText}>
+                  Forgot Password?
+                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Sign In Button */}
+            {/* LOGIN BUTTON */}
             <TouchableOpacity
               onPress={handleLogin}
               disabled={isLoading}
-              style={[styles.signInButton, isLoading && styles.signInButtonDisabled]}
+              style={[
+                styles.signInButton,
+                isLoading && styles.signInButtonDisabled,
+              ]}
               activeOpacity={0.8}
             >
               {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator
+                  color="#FFFFFF"
+                  size="small"
+                />
               ) : (
-                <Text style={styles.signInButtonText}>Sign In</Text>
+                <Text style={styles.signInButtonText}>
+                  Sign In
+                </Text>
               )}
             </TouchableOpacity>
-
-           
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -229,27 +406,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+
   keyboardContainer: {
     flex: 1,
   },
+
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
   },
-  logoSection: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  logoContainer: {
-    marginBottom: 16,
-  },
-  
 
   card: {
     backgroundColor: '#FFFFFF',
@@ -263,6 +429,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 4,
   },
+
   title: {
     fontSize: 24,
     fontWeight: '700',
@@ -270,12 +437,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
+
   subtitle: {
     fontSize: 14,
     color: '#070907',
     marginBottom: 32,
     textAlign: 'center',
   },
+
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -286,21 +455,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FECACA',
   },
+
   errorText: {
     color: '#DC2626',
     fontSize: 14,
     marginLeft: 8,
     flex: 1,
   },
+
   fieldContainer: {
     marginBottom: 20,
   },
+
   label: {
     fontSize: 13,
     fontWeight: '500',
-    color: 'white',
+    color: '#070907',
     marginBottom: 8,
   },
+
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -311,29 +484,46 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#3BC240',
   },
+
   inputContainerFocused: {
     borderColor: '#9CA3AF',
     borderWidth: 1.5,
   },
+
+  inputError: {
+    borderColor: '#DC2626',
+  },
+
   input: {
     flex: 1,
     color: '#54698c',
     fontSize: 15,
     marginLeft: 10,
   },
+
   eyeIcon: {
     padding: 4,
   },
+
+  validationText: {
+    color: '#DC2626',
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 4,
+  },
+
   rememberForgotContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
   },
+
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   checkbox: {
     width: 18,
     height: 18,
@@ -344,20 +534,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
+
   checkboxChecked: {
     backgroundColor: '#FFFFFF',
     borderColor: '#3BC240',
   },
+
   checkboxLabel: {
     fontSize: 14,
     color: '#3BC240',
   },
-  forgotPasswordContainer: {},
+
   forgotPasswordText: {
-    color: '#e3e2fa',
+    color: '#3BC240',
     fontSize: 14,
     fontWeight: '500',
   },
+
   signInButton: {
     backgroundColor: '#3BC240',
     borderRadius: 8,
@@ -370,20 +563,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+
   signInButtonDisabled: {
     opacity: 0.7,
   },
+
   signInButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  footer: {
-    alignItems: 'center',
-  },
-  footerText: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    textAlign: 'center',
   },
 });

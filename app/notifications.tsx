@@ -3,14 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 interface Notification {
@@ -42,59 +43,43 @@ export default function NotificationsScreen() {
       setLoading(true);
       const token = await authService.getToken();
       
-      // Mock data for now - replace with actual API call
-      const mockNotifications: Notification[] = [
-        {
-          id: '1',
-          title: 'Truck Maintenance Scheduled',
-          message: 'Your truck TRK-102 is scheduled for preventive maintenance on May 15, 2026 at 9:00 AM.',
-          type: 'maintenance',
-          scheduledDate: 'May 15, 2026',
-          scheduledTime: '9:00 AM',
-          location: 'DTS Main Workshop',
-          estimatedDuration: '2-3 hours',
-          priority: 'medium',
-          status: 'unread',
-          createdAt: '2026-05-09T10:30:00Z'
+      // Fetch maintenance reports from API
+      const response = await fetch('http://10.65.49.24:8000/api/driver/maintenance-reports', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        {
-          id: '2',
-          title: 'Urgent: Brake Inspection Required',
-          message: 'Please bring your truck for immediate brake inspection. Safety concern detected.',
-          type: 'urgent',
-          scheduledDate: 'May 10, 2026',
-          scheduledTime: '2:00 PM',
-          location: 'DTS Emergency Bay',
-          estimatedDuration: '1 hour',
-          priority: 'emergency',
-          status: 'unread',
-          createdAt: '2026-05-09T08:15:00Z'
-        },
-        {
-          id: '3',
-          title: 'Schedule Change Notice',
-          message: 'Your maintenance schedule has been moved to May 20, 2026 due to parts availability.',
-          type: 'schedule',
-          scheduledDate: 'May 20, 2026',
-          scheduledTime: '10:00 AM',
-          location: 'DTS Main Workshop',
-          estimatedDuration: '3 hours',
-          priority: 'low',
-          status: 'read',
-          createdAt: '2026-05-08T16:45:00Z'
-        },
-        {
-          id: '4',
-          title: 'Maintenance Complete',
-          message: 'Your truck maintenance has been completed. Vehicle is ready for pickup.',
-          type: 'general',
-          priority: 'low',
-          status: 'read',
-          createdAt: '2026-05-07T14:20:00Z'
-        }
-      ];
+      });
 
-      setNotifications(mockNotifications);
+      if (!response.ok) {
+        throw new Error('Failed to fetch notifications');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.reports) {
+        // Transform maintenance reports into notifications
+        const transformedNotifications: Notification[] = data.reports
+          .filter((report: any) => ['approved', 'in_progress', 'completed'].includes(report.status))
+          .map((report: any) => ({
+            id: report.id.toString(),
+            title: report.notification_title || 'Maintenance Update',
+            message: report.notification_message || report.issue_title,
+            type: report.notification_type || 'general',
+            scheduledDate: report.scheduled_date || undefined,
+            scheduledTime: report.scheduled_time || undefined,
+            location: report.location || undefined,
+            estimatedDuration: report.estimated_duration || undefined,
+            priority: report.priority_level || 'medium',
+            status: report.notification_status || 'unread',
+            createdAt: report.created_at,
+          }));
+
+        setNotifications(transformedNotifications);
+      } else {
+        setNotifications([]);
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error);
       Alert.alert('Error', 'Failed to load notifications');
@@ -218,7 +203,7 @@ export default function NotificationsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={22} color="#0F172A" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>Notifications</Text>
@@ -232,7 +217,7 @@ export default function NotificationsScreen() {
             <Ionicons 
               name="refresh" 
               size={20} 
-              color="#FFFFFF" 
+              color="#0F172A" 
               style={refreshing ? { transform: [{ rotate: '180deg' }] } : {}}
             />
           </TouchableOpacity>
@@ -241,7 +226,7 @@ export default function NotificationsScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#22C55E" />
+              <ActivityIndicator size="large" color="#10B981" />
               <Text style={styles.loadingText}>Loading notifications...</Text>
             </View>
           ) : notifications.length === 0 ? (
@@ -354,22 +339,24 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
-    paddingTop: 55,
+    paddingTop: Platform.OS === 'ios' ? 0 : 8,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#22C55E',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
   },
   backButton: {
-    padding: 8,
+    padding: 4,
   },
   headerTitleContainer: {
     flex: 1,
@@ -378,84 +365,82 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
     textAlign: 'center',
   },
   badge: {
     backgroundColor: '#EF4444',
     borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: 6,
   },
   badgeText: {
     color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 9,
+    fontWeight: '700',
   },
   refreshButton: {
-    padding: 8,
+    padding: 4,
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 100,
+    marginTop: 80,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#6B7280',
+    marginTop: 10,
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 100,
+    marginTop: 80,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
-    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginTop: 12,
   },
   emptyMessage: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 8,
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 6,
     textAlign: 'center',
   },
   notificationsList: {
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   notificationCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 2,
   },
   unreadCard: {
-    borderColor: '#22C55E',
+    borderColor: '#10B981',
     borderWidth: 1.5,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#ECFDF5',
   },
   notificationHeader: {
     flexDirection: 'row',
@@ -468,33 +453,35 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   notificationContent: {
     flex: 1,
   },
   notificationTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
     marginBottom: 4,
   },
   notificationMessage: {
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 18,
     marginBottom: 8,
   },
   scheduleDetails: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-    padding: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 10,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   scheduleItem: {
     flexDirection: 'row',
@@ -502,9 +489,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   scheduleText: {
-    fontSize: 12,
-    color: '#374151',
+    fontSize: 11,
+    color: '#475569',
     marginLeft: 6,
+    fontWeight: '500',
   },
   notificationFooter: {
     flexDirection: 'row',
@@ -512,8 +500,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   notificationTime: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '500',
   },
   priorityBadge: {
     paddingHorizontal: 8,
@@ -521,8 +510,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   priorityBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 9,
+    fontWeight: '700',
   },
   notificationActions: {
     alignItems: 'center',
@@ -532,7 +521,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#10B981',
     marginBottom: 8,
   },
   deleteButton: {

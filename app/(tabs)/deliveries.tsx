@@ -2,6 +2,7 @@ import authService from '@/services/authService';
 import driverService, { DriverProfile } from '@/services/driverService';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -12,6 +13,8 @@ import {
   RefreshControl,
   SafeAreaView,
   ScrollView,
+  FlatList,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -20,12 +23,12 @@ import {
 
 // API Configuration
 // For physical Android device, use your computer's IP
-const YOUR_COMPUTER_IP = '10.26.16.24';
+const YOUR_COMPUTER_IP = '10.65.49.24';
 
 const getApiBaseUrl = () => {
   if (Platform.OS === 'android') {
     // Physical Android device uses your computer's IP
-    return `http://${YOUR_COMPUTER_IP}:8000/api`;
+    return `http://10.65.49.24:8000/api`;
   }
   // iOS simulator and web use localhost
   return 'http://localhost:8000/api';
@@ -36,6 +39,7 @@ const API_BASE_URL = getApiBaseUrl();
 export default function DeliveriesScreen() {
   try {
     const [selectedTab, setSelectedTab] = useState<'active' | 'completed'>('active');
+    const [startingDeliveryId, setStartingDeliveryId] = useState<string | null>(null);
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [deliveries, setDeliveries] = useState<any[]>([]);
@@ -45,9 +49,86 @@ export default function DeliveriesScreen() {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [driverProfile, setDriverProfile] = useState<DriverProfile | null>(null);
 
-    // Fetch deliveries from API
+    // TanStack Query for Infinite Scroll of Completed Deliveries
+    const fetchCompletedDeliveries = async ({ pageParam = 1 }) => {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) throw new Error('No auth token');
+      
+      const response = await axios.get(`${API_BASE_URL}/deliveries`, {
+        params: {
+          status: 'completed',
+          page: pageParam,
+          per_page: 10
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.data.success) {
+        return response.data; // Expected: { success, data, current_page, last_page, ... }
+      } else {
+        throw new Error(response.data.message || 'API error');
+      }
+    };
+
+    const {
+      data: infiniteData,
+      fetchNextPage,
+      hasNextPage,
+      isFetchingNextPage,
+      isError,
+      refetch: refetchCompleted,
+      isFetching: isFetchingCompleted
+    } = useInfiniteQuery({
+      queryKey: ['completed-deliveries'],
+      queryFn: fetchCompletedDeliveries,
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) => {
+        if (lastPage.current_page < lastPage.last_page) {
+          return lastPage.current_page + 1;
+        }
+        return undefined;
+      },
+      enabled: selectedTab === 'completed' && isAuthenticated === true,
+    });
+
+    // Flatten pages for rendering
+    const mappedCompletedDeliveries = infiniteData ? infiniteData.pages.flatMap((page) => {
+      return page.data.map((delivery: any) => ({
+        id: `#${delivery.waybill}`,
+        waybill: delivery.waybill,
+        address: delivery.delivery_address,
+        pickup_address: delivery.pickup_address,
+        customer: delivery.client?.client_name || 'Unknown',
+        client_name: delivery.client?.client_name || 'Unknown',
+        driver: delivery.driver?.user?.firstname + ' ' + delivery.driver?.user?.lastname || 'Unassigned',
+        driver_name: delivery.driver?.user?.firstname + ' ' + delivery.driver?.user?.lastname || 'Unassigned',
+        status: delivery.delivery_status === 'in_transit' ? 'In Transit' :
+                delivery.delivery_status === 'delivered' ? 'Delivered' :
+                delivery.delivery_status === 'cancelled' ? 'Cancelled' :
+                delivery.delivery_status === 'pending' ? 'Pending' :
+                delivery.delivery_status === 'assigned' ? 'Assigned' :
+                delivery.delivery_status === 'approved' ? 'Approved' : delivery.delivery_status,
+        priority: delivery.priority?.toUpperCase() || 'MEDIUM',
+        weight_tons: delivery.weight_tons,
+        weight: `${delivery.weight_tons} tons`,
+        eta: delivery.estimated_delivery_time,
+        created_at: delivery.created_at,
+        item_description: delivery.item_description,
+        requested_by: delivery.user?.username || 'Unknown',
+        completedAt: (delivery.delivery_status === 'delivered' || delivery.delivery_status === 'Delivered') && delivery.updated_at 
+          ? new Date(delivery.updated_at).toLocaleTimeString() 
+          : null,
+        podImage: delivery.proof_image_url || delivery.proof_image || delivery.pod_image || null,
+        originalData: delivery,
+      }));
+    }) : [];
+
+    // Fetch active deliveries from API
     const fetchDeliveries = useCallback(async (showLoading = true) => {
-      if (showLoading) setLoading(true);
+      if (showLoading && selectedTab === 'active') setLoading(true);
     try {
       const token = await AsyncStorage.getItem('authToken');
       
@@ -75,8 +156,8 @@ export default function DeliveriesScreen() {
       if (response.data.success) {
         // Transform API data to match the expected format
         const transformedDeliveries = response.data.deliveries.map((delivery: any) => ({
-          id: `#${delivery.tracking_number}`,
-          tracking_number: delivery.tracking_number,
+          id: `#${delivery.waybill}`,
+          waybill: delivery.waybill,
           address: delivery.delivery_address,
           pickup_address: delivery.pickup_address,
           customer: delivery.client?.client_name || 'Unknown',
@@ -95,7 +176,10 @@ export default function DeliveriesScreen() {
           created_at: delivery.created_at,
           item_description: delivery.item_description,
           requested_by: delivery.user?.username || 'Unknown',
-          completedAt: delivery.delivery_status === 'delivered' ? new Date(delivery.updated_at).toLocaleTimeString() : null,
+          completedAt: (delivery.delivery_status === 'delivered' || delivery.delivery_status === 'Delivered') && delivery.updated_at 
+            ? new Date(delivery.updated_at).toLocaleTimeString() 
+            : null,
+          podImage: delivery.proof_image_url || delivery.proof_image || delivery.pod_image || null,
           // Keep original data for reference
           originalData: delivery,
         }));
@@ -165,34 +249,53 @@ export default function DeliveriesScreen() {
     }
   }, []);
 
-  // Initial fetch
+  // Initial fetch for Active tab
   useEffect(() => {
     fetchDeliveries();
   }, [fetchDeliveries]);
 
-  // Auto-refresh every 5 seconds for real-time updates
+  // Auto-refresh every 5 seconds for real-time updates on active tab
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchDeliveries(false);
+      if (selectedTab === 'active') {
+        fetchDeliveries(false);
+      }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [fetchDeliveries]);
+  }, [fetchDeliveries, selectedTab]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchDeliveries(false);
-  }, [fetchDeliveries]);
+    if (selectedTab === 'active') {
+      fetchDeliveries(false);
+    } else {
+      refetchCompleted().finally(() => setRefreshing(false));
+    }
+  }, [fetchDeliveries, selectedTab, refetchCompleted]);
 
-  // Filter deliveries based on tab
+  // Filter deliveries based on tab (only applies to active now)
   // Driver only sees deliveries AFTER admin sends them (status: Assigned, In Transit)
   const activeDeliveries = deliveries.filter(d => 
     d.status === 'Assigned' || d.status === 'In Transit'
   );
   
-  const completedDeliveries = deliveries.filter(d => 
-    d.status === 'Delivered' || d.status === 'Cancelled'
-  );
+  const completedDeliveries = mappedCompletedDeliveries;
+
+  const handleEndReached = () => {
+    if (selectedTab === 'completed' && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const renderFooter = () => {
+    if (selectedTab !== 'completed' || !isFetchingNextPage) return null;
+    return (
+      <View style={{ paddingVertical: 20 }}>
+        <ActivityIndicator size="small" color="#10B981" />
+      </View>
+    );
+  };
 
   const openDetailModal = (delivery: any) => {
     setSelectedDelivery(delivery);
@@ -232,11 +335,15 @@ export default function DeliveriesScreen() {
     } catch (error: any) {
       console.error('Error starting delivery:', error);
       Alert.alert('Error', error.response?.data?.message || 'Failed to start delivery');
+    } finally {
+      setStartingDeliveryId(null);
     }
   };
 
   // Start delivery - change status from assigned/approved to in_transit
   const startDelivery = async (delivery: any) => {
+    // Mark this delivery as starting to disable the button instantly
+    setStartingDeliveryId(delivery.id ?? delivery.delivery_id ?? String(delivery.originalData?.delivery_id));
     console.log('startDelivery called! Status:', delivery.status);
 
     // Check if driver is busy
@@ -249,6 +356,7 @@ export default function DeliveriesScreen() {
           { text: 'OK', style: 'cancel' }
         ]
       );
+      setStartingDeliveryId(null);
       return;
     }
     
@@ -260,11 +368,12 @@ export default function DeliveriesScreen() {
       const msg = `Cannot start: Status is "${delivery.status}". Only Assigned or Approved can be started.`;
       console.log(msg);
       Alert.alert('Cannot Start', msg);
+      setStartingDeliveryId(null);
       return;
     }
 
     // Show confirmation dialog
-    const confirmMsg = `Start delivery ${delivery.tracking_number}?`;
+    const confirmMsg = `Start delivery ${delivery.waybill}?`;
     
     // Check if running on web with confirm dialog available
     const isWeb = Platform.OS === 'web';
@@ -272,11 +381,13 @@ export default function DeliveriesScreen() {
       const confirmed = window.confirm(confirmMsg);
       if (!confirmed) {
         console.log('Start delivery cancelled');
+        setStartingDeliveryId(null);
         return;
       }
       await performStartDelivery(delivery);
     } else {
       // For mobile, use Alert.alert
+      // After API call finishes, clear the loading flag
       Alert.alert(
         'Start Delivery',
         confirmMsg,
@@ -286,11 +397,13 @@ export default function DeliveriesScreen() {
             style: 'cancel',
             onPress: () => {
               console.log('Start delivery cancelled');
+              setStartingDeliveryId(null);
             }
           },
           {
             text: 'Start',
             style: 'default',
+            // Ensure flag cleared whether user confirms or cancels
             onPress: () => {
               performStartDelivery(delivery);
             }
@@ -330,35 +443,38 @@ export default function DeliveriesScreen() {
   const renderDeliveryCard = (delivery: any, index: number) => (
     <View key={index} style={styles.deliveryCard}>
       <View style={styles.deliveryHeader}>
-        <View style={styles.deliveryIcon}>
-          <Ionicons name="cube-outline" size={24} color="#070907" />
+        <View style={[styles.deliveryIcon, { backgroundColor: '#ECFDF5' }]}>
+          <Ionicons name="cube" size={18} color="#10B981" />
         </View>
         <View style={styles.deliveryInfo}>
-          <Text style={styles.deliveryId}>{delivery.id}</Text>
-          <Text style={[styles.deliveryStatus, { color: getStatusColor(delivery.status) }]}>
+          <Text style={styles.deliveryId}>Waybill #{delivery.waybill}</Text>
+          <Text style={[styles.deliveryStatus, { 
+            color: delivery.status === 'In Transit' || delivery.status === 'In Progress' ? '#EF4444' : 
+                   delivery.status === 'Delivered' ? '#10B981' : '#3B82F6' 
+          }]}>
             {delivery.status}
           </Text>
         </View>
       </View>
       <View style={styles.deliveryDetails}>
         <View style={styles.detailRow}>
-          <Ionicons name="person-outline" size={16} color="#e3e2fa" />
+          <Ionicons name="person-outline" size={14} color="#64748B" />
           <Text style={styles.detailText}>{delivery.customer}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Ionicons name="location-outline" size={16} color="#e3e2fa" />
+          <Ionicons name="location-outline" size={14} color="#64748B" />
           <Text style={styles.detailText} numberOfLines={1}>{delivery.address}</Text>
         </View>
         {delivery.eta && (
           <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={16} color="#e3e2fa" />
+            <Ionicons name="time-outline" size={14} color="#64748B" />
             <Text style={styles.detailText}>ETA: {delivery.eta}</Text>
           </View>
         )}
         {delivery.completedAt && (
           <View style={styles.detailRow}>
-            <Ionicons name="checkmark-circle-outline" size={16} color="#e3e2fa" />
-            <Text style={styles.detailText}>Completed at {delivery.completedAt}</Text>
+            <Ionicons name="checkmark-circle-outline" size={14} color="#10B981" />
+            <Text style={[styles.detailText, { color: '#065F46' }]}>Completed at {delivery.completedAt}</Text>
           </View>
         )}
       </View>
@@ -372,7 +488,12 @@ export default function DeliveriesScreen() {
             console.log('Start button clicked! Status:', delivery.status);
             startDelivery(delivery);
           }}
-          disabled={delivery.status === 'In Transit' || delivery.status === 'in_transit' || delivery.status === 'Delivered'}
+          disabled={
+            delivery.status === 'In Transit' ||
+            delivery.status === 'in_transit' ||
+            delivery.status === 'Delivered' ||
+            startingDeliveryId === (delivery.id ?? delivery.delivery_id ?? String(delivery.originalData?.delivery_id))
+          }
         >
           <Text style={styles.startButtonText}>
             {delivery.status === 'In Transit' || delivery.status === 'in_transit' 
@@ -392,8 +513,8 @@ export default function DeliveriesScreen() {
       
       {/* Show status badge on card for delivered items */}
       {delivery.status === 'Delivered' && (
-        <View style={[styles.cardStatusBadge, { backgroundColor: '#10B98120' }]}>
-          <Text style={[styles.cardStatusText, { color: '#10B981' }]}>Completed</Text>
+        <View style={[styles.cardStatusBadge, { backgroundColor: '#D1FAE5' }]}>
+          <Text style={[styles.cardStatusText, { color: '#065F46' }]}>Completed</Text>
         </View>
       )}
     </View>
@@ -403,7 +524,7 @@ export default function DeliveriesScreen() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.title}>Deliveries</Text>
+          <Text style={styles.title}>Shipments</Text>
         </View>
 
         {/* Tab Switcher */}
@@ -413,7 +534,7 @@ export default function DeliveriesScreen() {
             onPress={() => setSelectedTab('active')}
           >
             <Text style={[styles.tabText, selectedTab === 'active' && styles.activeTabText]}>
-              Active
+              Active ({activeDeliveries.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -421,15 +542,15 @@ export default function DeliveriesScreen() {
             onPress={() => setSelectedTab('completed')}
           >
             <Text style={[styles.tabText, selectedTab === 'completed' && styles.activeTabText]}>
-              Completed
+              Completed ({completedDeliveries.length})
             </Text>
           </TouchableOpacity>
         </View>
 
         {loading && deliveries.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#6366F1" />
-            <Text style={styles.loadingText}>Loading deliveries...</Text>
+            <ActivityIndicator size="large" color="#10B981" />
+            <Text style={styles.loadingText}>Synchronizing shipments...</Text>
           </View>
         ) : isAuthenticated === false ? (
           <ScrollView 
@@ -438,8 +559,8 @@ export default function DeliveriesScreen() {
             contentContainerStyle={styles.notLoggedInContainer}
           >
             <View style={styles.emptyContainer}>
-              <Ionicons name="lock-closed-outline" size={64} color="#e3e2fa" />
-              <Text style={[styles.emptyTitle, { color: '#e3e2fa' }]}>Not Logged In</Text>
+              <Ionicons name="lock-closed-outline" size={60} color="#94A3B8" />
+              <Text style={[styles.emptyTitle, { color: '#0F172A' }]}>Not Logged In</Text>
               <Text style={styles.emptyText}>Please login to view your assigned deliveries</Text>
               <TouchableOpacity 
                 style={styles.loginButton}
@@ -448,7 +569,6 @@ export default function DeliveriesScreen() {
                   await authService.clearStorage();
                   Alert.alert('Storage Cleared', 'Redirecting to login...');
                   setIsAuthenticated(false);
-                  // Redirect to login page
                   if (typeof window !== 'undefined') {
                     window.location.href = '/login';
                   }
@@ -456,10 +576,8 @@ export default function DeliveriesScreen() {
               >
                 <Text style={styles.loginButtonText}>Clear & Re-login</Text>
               </TouchableOpacity>
-              
-              {/* Debug button */}
               <TouchableOpacity 
-                style={[styles.loginButton, { backgroundColor: '#6B7280', marginTop: 10 }]}
+                style={[styles.loginButton, { backgroundColor: '#64748B', marginTop: 10 }]}
                 onPress={async () => {
                   await authService.debugStorage();
                   const token = await AsyncStorage.getItem('authToken');
@@ -471,78 +589,77 @@ export default function DeliveriesScreen() {
             </View>
           </ScrollView>
         ) : (
-          <ScrollView 
-            style={styles.scrollView} 
+          <FlatList
+            style={styles.scrollView}
             showsVerticalScrollIndicator={false}
+            data={selectedTab === 'active' ? activeDeliveries : completedDeliveries}
+            keyExtractor={(item, index) => item.originalData?.id?.toString() || index.toString()}
+            renderItem={({ item, index }) => renderDeliveryCard(item, index)}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />
             }
-          >
-            {/* Last updated indicator */}
-            <View style={styles.updateIndicator}>
-              <View style={styles.liveDot} />
-              <Text style={styles.updateText}>Live • {lastUpdated.toLocaleTimeString()}</Text>
-            </View>
-            
-            {selectedTab === 'active' ? (
-            <>
-              {activeDeliveries.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Ionicons name="cube-outline" size={64} color="#3BC240" />
-                  <Text style={styles.emptyTitle}>No Active Deliveries</Text>
-                  <Text style={styles.emptyText}>New deliveries will appear here when assigned</Text>
-                </View>
-              ) : (
-                activeDeliveries.map((delivery, index) => renderDeliveryCard(delivery, index))
-              )}
-            </>
-          ) : (
-            <>
-              {completedDeliveries.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Ionicons name="checkmark-circle-outline" size={64} color="#e3e2fa" />
-                  <Text style={styles.emptyTitle}>No Completed Deliveries</Text>
-                  <Text style={styles.emptyText}>Finished deliveries will appear here</Text>
-                </View>
-              ) : (
-                completedDeliveries.map((delivery, index) => renderDeliveryCard(delivery, index))
-              )}
-            </>
-          )}
-        </ScrollView>
-      )}
+            ListHeaderComponent={
+              <View style={styles.updateIndicator}>
+                <View style={styles.liveDot} />
+                <Text style={styles.updateText}>System Sync • {lastUpdated.toLocaleTimeString()}</Text>
+              </View>
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Ionicons 
+                  name={selectedTab === 'active' ? "cube-outline" : "checkmark-circle-outline"} 
+                  size={60} 
+                  color="#94A3B8" 
+                />
+                <Text style={styles.emptyTitle}>
+                  {selectedTab === 'active' ? "No Active Deliveries" : "No Completed Deliveries"}
+                </Text>
+                <Text style={styles.emptyText}>
+                  {selectedTab === 'active' ? "New deliveries will appear here when assigned" : "Finished deliveries will appear here"}
+                </Text>
+              </View>
+            }
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+        )}
       </SafeAreaView>
 
       {/* Delivery Detail Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showDetailModal}
-        onRequestClose={closeDetailModal}
-      >
+      <Modal animationType="slide" transparent={true} visible={showDetailModal} onRequestClose={closeDetailModal}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderLeft}>
-                <View style={styles.modalIcon}>
-                  <Ionicons name="cube-outline" size={24} color="#070907" />
+                <View style={[styles.modalIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Ionicons name="cube" size={20} color="#10B981" />
                 </View>
                 <View>
-                  <Text style={styles.modalTitle}>#{selectedDelivery?.tracking_number}</Text>
+                  <Text style={styles.modalTitle}>Waybill #{selectedDelivery?.waybill}</Text>
                   <Text style={styles.modalDate}>{formatDate(selectedDelivery?.created_at)}</Text>
                 </View>
               </View>
               <View style={styles.modalHeaderRight}>
                 {selectedDelivery?.status && (
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(selectedDelivery.status) + '20' }]}>
-                    <Text style={[styles.statusBadgeText, { color: getStatusColor(selectedDelivery.status) }]}>
+                  <View style={[styles.statusBadge, { 
+                    backgroundColor: selectedDelivery.status === 'Delivered' ? '#D1FAE5' : '#EFF6FF'
+                  }]}>
+                    <Text style={[styles.statusBadgeText, { 
+                      color: selectedDelivery.status === 'Delivered' ? '#065F46' : '#2563EB' 
+                    }]}>
                       {selectedDelivery.status}
                     </Text>
                   </View>
                 )}
                 <TouchableOpacity onPress={closeDetailModal} style={styles.closeButton}>
-                  <Ionicons name="close-outline" size={24} color="#e3e2fa" />
+                  <Ionicons name="close-outline" size={20} color="#64748B" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -551,19 +668,19 @@ export default function DeliveriesScreen() {
               {/* Info Grid */}
               <View style={styles.infoGrid}>
                 <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Client</Text>
+                  <Text style={styles.infoLabel}>Client Partner</Text>
                   <Text style={styles.infoValue}>{selectedDelivery?.client_name || selectedDelivery?.customer}</Text>
                 </View>
                 <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Driver</Text>
+                  <Text style={styles.infoLabel}>Assigned Driver</Text>
                   <Text style={styles.infoValue}>{selectedDelivery?.driver_name || selectedDelivery?.driver}</Text>
                 </View>
                 <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Weight</Text>
+                  <Text style={styles.infoLabel}>Cargo Weight</Text>
                   <Text style={styles.infoValue}>{selectedDelivery?.weight || selectedDelivery?.weight_tons + ' tons'}</Text>
                 </View>
                 <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Priority</Text>
+                  <Text style={styles.infoLabel}>Priority Level</Text>
                   <Text style={[styles.infoValue, { 
                     color: selectedDelivery?.priority === 'HIGH' ? '#EF4444' : 
                            selectedDelivery?.priority === 'MEDIUM' ? '#F59E0B' : '#10B981'
@@ -577,19 +694,19 @@ export default function DeliveriesScreen() {
               <View style={styles.addressSection}>
                 <View style={styles.addressCard}>
                   <View style={styles.addressHeader}>
-                    <Ionicons name="location-outline" size={18} color="#e3e2fa" />
-                    <Text style={styles.addressLabel}>Pickup Address</Text>
+                    <Ionicons name="location-outline" size={16} color="#6366F1" />
+                    <Text style={styles.addressLabel}>Pickup Location</Text>
                   </View>
                   <Text style={styles.addressText}>{selectedDelivery?.pickup_address}</Text>
                 </View>
 
                 <View style={styles.addressArrow}>
-                  <Ionicons name="arrow-down-outline" size={20} color="#e3e2fa" />
+                  <Ionicons name="arrow-down-outline" size={18} color="#94A3B8" />
                 </View>
 
                 <View style={styles.addressCard}>
                   <View style={styles.addressHeader}>
-                    <Ionicons name="navigate-outline" size={18} color="#e3e2fa" />
+                    <Ionicons name="navigate-outline" size={16} color="#10B981" />
                     <Text style={styles.addressLabel}>Delivery Address</Text>
                   </View>
                   <Text style={styles.addressText}>{selectedDelivery?.address}</Text>
@@ -602,10 +719,42 @@ export default function DeliveriesScreen() {
                 <Text style={styles.descriptionText}>{selectedDelivery?.item_description}</Text>
               </View>
 
+              {/* Proof of Delivery Image */}
+              {selectedDelivery?.status === 'Delivered' && selectedDelivery?.podImage && (
+                <View style={styles.descriptionCard}>
+                  <Text style={styles.descriptionLabel}>Proof of Delivery</Text>
+                  {(() => {
+                    // Helper to ensure the image URI is absolute
+                    const getAbsoluteUrl = (uri: string | undefined) => {
+                      if (!uri) return null;
+                      // If already an absolute URL, return as is
+                      if (uri.startsWith('http://') || uri.startsWith('https://')) {
+                        return uri;
+                      }
+                      // Otherwise prepend the API base URL (adjust as needed)
+                      const API_BASE_URL = Platform.OS === 'web' ? 'http://localhost:8000' : 'http://10.65.49.24:8000';
+                      // Ensure no leading slash duplication
+                      const cleanUri = uri.startsWith('/') ? uri.slice(1) : uri;
+                      return `${API_BASE_URL}/${cleanUri}`;
+                    };
+                    const imageUrl = getAbsoluteUrl(selectedDelivery?.podImage);
+                    return imageUrl ? (
+                      <Image
+                        source={{ uri: imageUrl }}
+                        style={{ width: '100%', height: 200, borderRadius: 8, marginTop: 8 }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text style={styles.emptyText}>Proof of Delivery image not available</Text>
+                    );
+                  })()}
+                </View>
+              )}
+
               {/* Requested By */}
               <View style={styles.requestedByContainer}>
                 <Text style={styles.requestedByText}>
-                  Requested by {selectedDelivery?.requested_by}
+                  Dispatched under authorization of: {selectedDelivery?.requested_by}
                 </Text>
               </View>
             </ScrollView>
@@ -613,7 +762,7 @@ export default function DeliveriesScreen() {
             {/* Modal Footer */}
             <View style={styles.modalFooter}>
               <TouchableOpacity style={styles.closeModalButton} onPress={closeDetailModal}>
-                <Text style={styles.closeModalButtonText}>Close</Text>
+                <Text style={styles.closeModalButtonText}>Dismiss View</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -629,110 +778,101 @@ export default function DeliveriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#3BC240',
+    borderBottomColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#070907',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#3BC240',
+    borderBottomColor: '#E2E8F0',
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#3BC240',
+    borderBottomColor: '#10B981',
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#070907',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
   },
   activeTabText: {
-    color: '#3BC240',
-    fontWeight: '600',
+    color: '#10B981',
   },
   scrollView: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   deliveryCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#3BC240',
-    marginBottom: 16,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    borderColor: '#E2E8F0',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 2,
+    position: 'relative',
   },
   deliveryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   deliveryIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
-    borderColor: '#3BC240',
-    borderWidth: 1,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginRight: 10,
   },
   deliveryInfo: {
     flex: 1,
   },
   deliveryId: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#070907',
-    letterSpacing: 0.3,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   deliveryStatus: {
-    fontSize: 13,
-    marginTop: 4,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+    fontSize: 11,
+    marginTop: 2,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   deliveryDetails: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   detailText: {
     fontSize: 14,
@@ -744,88 +884,64 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
+    gap: 8,
+    marginTop: 8,
   },
   startButton: {
-    backgroundColor: '#3BC240',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#0F172A',
+    borderRadius: 10,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '48%',
-    minHeight: 56,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    flex: 1,
   },
   startButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 0.3,
   },
   inTransitButton: {
-    backgroundColor: '#3BC240',
-    shadowColor: '#3BC240',
+    backgroundColor: '#EF4444',
   },
   actionButton: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 10,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '48%',
-    minHeight: 56,
-    borderColor: '#3BC240',
+    flex: 1,
+    borderColor: '#E2E8F0',
     borderWidth: 1,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
   },
   actionButtonText: {
-    color: '#3BC240',
-    fontSize: 14,
+    color: '#0F172A',
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 0.3,
   },
-  // Modal Styles - Ultra Enhanced with Glassmorphism
+  // Modal Styles
   modalOverlay: {
     flex: 1,
-
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#3BC240',
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     width: '100%',
-    maxWidth: 440,
-    maxHeight: '88%',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 30,
-    elevation: 15,
+    maxHeight: '90%',
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#3BC240',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 24,
-    backgroundColor: '#FFFFFF',
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#FFFFFF',
+    borderBottomColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   modalHeaderLeft: {
     flexDirection: 'row',
@@ -833,185 +949,154 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
-    borderColor: '#3BC240',
-    borderWidth: 1,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
+    marginRight: 10,
   },
   modalTitle: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#070907',
-    letterSpacing: 0,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   modalDate: {
-    fontSize: 13,
-    color: '#070907',
-    marginTop: 4,
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
     fontWeight: '600',
   },
   modalHeaderRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   statusBadge: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#070907',
-    borderWidth: 1,
-    borderColor: '#7059BC',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   statusBadgeText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    color: '#FFFFFF',
   },
   closeButton: {
-    padding: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
+    padding: 6,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
   },
   modalContent: {
-    padding: 24,
-    backgroundColor: '#FFFFFF',
+    padding: 16,
+    backgroundColor: '#F8FAFC',
   },
   infoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
+    gap: 8,
+    marginBottom: 16,
   },
   infoCard: {
     flex: 1,
     minWidth: '45%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 18,
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#3BC240',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: '#E2E8F0',
   },
   infoLabel: {
-    fontSize: 11,
-    color: '#070907',
-    marginBottom: 8,
+    fontSize: 9,
+    color: '#94A3B8',
+    marginBottom: 4,
     textTransform: 'uppercase',
     fontWeight: '800',
-    letterSpacing: 0.8,
+    letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#070907',
-    letterSpacing: -0.3,
+    color: '#0F172A',
   },
   addressSection: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   addressCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#3BC240',
-    marginBottom: 16,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    borderColor: '#E2E8F0',
   },
   addressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: 6,
+    marginBottom: 4,
   },
   addressLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#070907',
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#64748B',
+    textTransform: 'uppercase',
   },
   addressText: {
-    fontSize: 14,
-    color: '#070907',
-    lineHeight: 20,
+    fontSize: 13,
+    color: '#0F172A',
+    lineHeight: 18,
+    fontWeight: '600',
   },
   addressArrow: {
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 4,
   },
   descriptionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#3BC240',
+    borderColor: '#E2E8F0',
     marginBottom: 16,
   },
   descriptionLabel: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '800',
-    color: '#070907',
-    marginBottom: 10,
+    color: '#94A3B8',
+    marginBottom: 4,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.5,
   },
   descriptionText: {
-    fontSize: 15,
-    color: '#070907',
-    lineHeight: 22,
+    fontSize: 13,
+    color: '#0F172A',
+    lineHeight: 18,
     fontWeight: '600',
   },
   requestedByContainer: {
-    paddingVertical: 8,
+    paddingVertical: 4,
+    alignItems: 'center',
   },
   requestedByText: {
-    fontSize: 13,
-    color: '#070907',
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
   },
   modalFooter: {
-    padding: 24,
+    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#FFFFFF',
+    borderTopColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
   },
   closeModalButton: {
-    backgroundColor: '#3BC240',
-    borderRadius: 12,
-    paddingVertical: 14,
+    backgroundColor: '#0F172A',
+    borderRadius: 10,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#3BC240',
   },
   closeModalButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   // Loading & Empty State Styles
   loadingContainer: {
@@ -1021,10 +1106,10 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#070907',
-    fontWeight: '500',
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -1033,48 +1118,49 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#070907',
-    marginTop: 16,
-    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 12,
+    marginBottom: 4,
   },
   emptyText: {
-    fontSize: 14,
-    color: '#070907',
+    fontSize: 13,
+    color: '#64748B',
     textAlign: 'center',
+    lineHeight: 18,
   },
   // Live Update Indicator
   updateIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-    gap: 8,
+    marginBottom: 12,
+    gap: 6,
   },
   liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#10B981',
   },
   updateText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
   },
   // Card Status Badge
   cardStatusBadge: {
     position: 'absolute',
-    top: 20,
-    right: 20,
-    paddingHorizontal: 10,
+    top: 16,
+    right: 16,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   cardStatusText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '800',
   },
   // Not Logged In State
   notLoggedInContainer: {
@@ -1082,15 +1168,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loginButton: {
-    marginTop: 20,
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 24,
+    marginTop: 16,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
   },
   loginButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

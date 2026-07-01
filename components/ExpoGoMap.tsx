@@ -24,7 +24,9 @@ interface ExpoGoMapProps {
   navigationPhase?: NavigationPhase;
   showRouteLine?: boolean;
   heading?: number | null;
+  isGpsEnabled?: boolean;
   onRecenter?: () => void;
+  onRouteUpdate?: (distance: string, duration: string) => void;
 }
 
 // Generate map HTML with Leaflet Routing Machine for real road-following routes
@@ -34,7 +36,8 @@ const generateMapHTML = (
   navigationPhase: NavigationPhase = 'preview',
   showRouteLine: boolean = false,
   heading: number | null = null,
-  isNavigating: boolean = false
+  isNavigating: boolean = false,
+  isGpsEnabled: boolean = true
 ) => {
   // Default center (Manila fallback)
   let centerLat = 14.5995;
@@ -198,10 +201,9 @@ const generateMapHTML = (
     .driver-marker-arrow {
       width: 36px;
       height: 36px;
-      background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
       border: 3px solid white;
       border-radius: 50%;
-      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -219,9 +221,7 @@ const generateMapHTML = (
       transform: translate(-50%, -50%);
       width: 60px;
       height: 60px;
-      background: rgba(59, 130, 246, 0.3);
       border-radius: 50%;
-      animation: driverPulse 2s ease-out infinite;
       pointer-events: none;
     }
     @keyframes driverPulse {
@@ -266,10 +266,14 @@ const generateMapHTML = (
       ${markersJS}
 
       // Driver marker function
-      function createDriverIcon(heading) {
+      function createDriverIcon(heading, gpsEnabled) {
+        let gradient = gpsEnabled ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)' : 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)';
+        let pulseBg = gpsEnabled ? 'rgba(59, 130, 246, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+        let pulseAnim = gpsEnabled ? 'driverPulse 2s ease-out infinite' : 'none'; // stops blinking if red
+        
         return L.divIcon({
           className: 'driver-marker-container',
-          html: '<div class="driver-marker-pulse"></div><div class="driver-marker-arrow" style="transform: rotate(' + heading + 'deg);"><svg viewBox="0 0 24 24" style="transform: rotate(-90deg);"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg></div>',
+          html: '<div class="driver-marker-pulse" style="background: ' + pulseBg + '; animation: ' + pulseAnim + ';"></div><div class="driver-marker-arrow" style="background: ' + gradient + '; transform: rotate(' + heading + 'deg);"><svg viewBox="0 0 24 24" style="transform: rotate(-90deg);"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg></div>',
           iconSize: [60, 60],
           iconAnchor: [30, 30]
         });
@@ -278,7 +282,7 @@ const generateMapHTML = (
       // Initialize driver position
       ${initialLocation && isValidCoord(initialLocation.coords.latitude) ? `
       driverMarker = L.marker([${driverLat}, ${driverLng}], {
-        icon: createDriverIcon(${driverHeading}),
+        icon: createDriverIcon(${driverHeading}, ${isGpsEnabled}),
         zIndexOffset: 2000
       }).addTo(map);
       ` : ''}
@@ -344,17 +348,18 @@ const generateMapHTML = (
       ` : ''}
 
       // Update driver location
-      window.updateDriverLocation = function(lat, lng, newHeading, timestamp) {
+      window.updateDriverLocation = function(lat, lng, newHeading, timestamp, isGpsEnabled) {
         if (!lat || !lng || lat === 0 || lng === 0) return;
         try {
           driverHeading = newHeading || driverHeading || 0;
+          const gpsActive = isGpsEnabled !== undefined ? isGpsEnabled : true;
 
           if (driverMarker) {
             driverMarker.setLatLng([lat, lng]);
-            driverMarker.setIcon(createDriverIcon(driverHeading));
+            driverMarker.setIcon(createDriverIcon(driverHeading, gpsActive));
           } else {
             driverMarker = L.marker([lat, lng], {
-              icon: createDriverIcon(driverHeading),
+              icon: createDriverIcon(driverHeading, gpsActive),
               zIndexOffset: 2000
             }).addTo(map);
           }
@@ -421,7 +426,16 @@ const generateMapHTML = (
       console.log('Map initialized with Leaflet Routing Machine');
     } catch (error) {
       console.error('Map error:', error);
-      document.getElementById('map').innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;background:#f8fafc;color:#64748b;font-family:sans-serif;padding:20px;text-align:center;"><div>⚠️ Map Error</div><div style="font-size:14px;opacity:0.8;">' + error.message + '</div></div>';
+      document.getElementById('map').innerHTML = '<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;background:#FEF2F2;color:#991B1B;font-family:sans-serif;padding:24px;text-align:center;">' +
+        '<div style="font-size:24px;font-weight:bold;margin-bottom:8px;">⚠️ Map Load Failed</div>' +
+        '<div style="font-size:15px;font-weight:600;margin-bottom:12px;opacity:0.95;">Unable to initialize the Leaflet Map Engine.</div>' +
+        '<div style="font-size:13px;background:#FFFFFF;color:#111827;padding:12px 16px;border-radius:12px;font-family:monospace;border:1px solid #FCA5A5;margin-bottom:12px;max-width:90%;word-break:break-all;">' +
+          error.message +
+        '</div>' +
+        '<div style="font-size:12px;color:#7F1D1D;max-width:85%;line-height:1.5;">' +
+          'This usually indicates your device lacks an active internet connection to download open-source maps (unpkg.com CDNs & OpenStreetMap tiles), or your emulator DNS is blocking the network request.' +
+        '</div>' +
+      '</div>';
     }
   </script>
 </body>
@@ -436,7 +450,9 @@ export default function ExpoGoMap({
   navigationPhase = 'preview',
   showRouteLine = false,
   heading = null,
+  isGpsEnabled = true,
   onRecenter,
+  onRouteUpdate,
 }: ExpoGoMapProps) {
   const webViewRef = useRef<WebView>(null);
   const fullscreenWebViewRef = useRef<WebView>(null);
@@ -455,22 +471,26 @@ export default function ExpoGoMap({
   const lastRouteFetchRef = useRef<number>(0);
   const cachedRouteRef = useRef<{start: {lat: number, lng: number}, end: {lat: number, lng: number}, points: number[][]} | null>(null);
   
-  // Generate HTML only when stops or navigation phase actually changes
+  const prevCurrentLocationRef = useRef<Location.LocationObject | null>(null);
+  
+  // Generate HTML only when stops, navigation phase, or location actually changes
   useEffect(() => {
-    // Only regenerate HTML if stops, navigation phase, or isNavigating changed
+    // Only regenerate HTML if stops, navigation phase, isNavigating, or currentLocation changed
     const stopsChanged = JSON.stringify(stopsRef.current) !== JSON.stringify(stops);
     const phaseChanged = navPhaseRef.current !== navigationPhase;
     const navChanged = isNavigatingRef.current !== isNavigating;
+    const locationChanged = !prevCurrentLocationRef.current && currentLocation;
     
-    if (!htmlRef.current || stopsChanged || phaseChanged || navChanged) {
+    if (!htmlRef.current || stopsChanged || phaseChanged || navChanged || locationChanged) {
       stopsRef.current = stops;
       navPhaseRef.current = navigationPhase;
       isNavigatingRef.current = isNavigating;
-      const initialHTML = generateMapHTML(stops, currentLocation, navigationPhase, showRouteLine, heading, isNavigating);
+      prevCurrentLocationRef.current = currentLocation || null;
+      const initialHTML = generateMapHTML(stops, currentLocation, navigationPhase, showRouteLine, heading, isNavigating, isGpsEnabled);
       htmlRef.current = initialHTML;
       setHtml(initialHTML);
     }
-  }, [stops, navigationPhase, showRouteLine, heading, isNavigating]);
+  }, [stops, navigationPhase, showRouteLine, heading, isNavigating, currentLocation, isGpsEnabled]);
 
   // Clear route cache when navigation phase changes (pickup -> delivery)
   const prevPhaseRef = useRef(navigationPhase);
@@ -483,15 +503,82 @@ export default function ExpoGoMap({
     }
   }, [navigationPhase]);
 
-  // Fetch real road-following route from OSRM when navigating (throttled to every 30 seconds)
+  // Fetch real road-following route from OSRM when navigating (throttled to every 10 seconds or instantly if off-route)
   useEffect(() => {
     const activeWebView = getActiveWebView();
     if (!isNavigating || !currentLocation || !activeWebView || !html) return;
 
-    // Throttle: only fetch every 30 seconds max
+    // Helper to calculate distance from point to line segment
+    const getDistanceToSegment = (
+      p: { lat: number; lng: number },
+      p1: { lat: number; lng: number },
+      p2: { lat: number; lng: number }
+    ) => {
+      const x = p.lng, y = p.lat;
+      const x1 = p1.lng, y1 = p1.lat;
+      const x2 = p2.lng, y2 = p2.lat;
+  
+      const A = x - x1;
+      const B = y - y1;
+      const C = x2 - x1;
+      const D = y2 - y1;
+  
+      const dot = A * C + B * D;
+      const len_sq = C * C + D * D;
+      let param = -1;
+      if (len_sq != 0) {
+        param = dot / len_sq;
+      }
+  
+      let xx, yy;
+  
+      if (param < 0) {
+        xx = x1;
+        yy = y1;
+      } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+      } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+      }
+  
+      const dx = x - xx;
+      const dy = y - yy;
+  
+      // Convert Euclidean degrees to approximate meters
+      const latMid = (y + yy) / 2;
+      const metersPerDegreeLat = 111320;
+      const metersPerDegreeLng = 111320 * Math.cos(latMid * Math.PI / 180);
+      
+      return Math.sqrt(Math.pow(dx * metersPerDegreeLng, 2) + Math.pow(dy * metersPerDegreeLat, 2));
+    };
+
+    let isOffRoute = false;
+    if (cachedRouteRef.current && currentLocation) {
+      const { latitude, longitude } = currentLocation.coords;
+      const points = cachedRouteRef.current.points;
+      let minDistance = Infinity;
+      
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = { lat: points[i][0], lng: points[i][1] };
+        const p2 = { lat: points[i+1][0], lng: points[i+1][1] };
+        const dist = getDistanceToSegment({ lat: latitude, lng: longitude }, p1, p2);
+        if (dist < minDistance) {
+          minDistance = dist;
+        }
+      }
+      
+      if (minDistance > 100) { // 100 meters
+        console.log(`Off route detected! Distance from route: ${Math.round(minDistance)}m`);
+        isOffRoute = true;
+      }
+    }
+
+    // Throttle: only fetch every 10 seconds max, unless off route
     const now = Date.now();
     const timeSinceLastFetch = now - lastRouteFetchRef.current;
-    if (timeSinceLastFetch < 30000 && cachedRouteRef.current) {
+    if (timeSinceLastFetch < 10000 && cachedRouteRef.current && !isOffRoute) {
       console.log('Skipping route fetch, last fetch was', Math.round(timeSinceLastFetch/1000), 'seconds ago');
       return;
     }
@@ -520,7 +607,7 @@ export default function ExpoGoMap({
         const end = { lat: targetStop.latitude, lng: targetStop.longitude };
         
         // Check if we have a cached route for similar start/end (within 100m)
-        if (cachedRouteRef.current) {
+        if (cachedRouteRef.current && !isOffRoute) {
           const cached = cachedRouteRef.current;
           const startDist = Math.sqrt(
             Math.pow(start.lat - cached.start.lat, 2) + 
@@ -531,7 +618,7 @@ export default function ExpoGoMap({
             Math.pow(end.lng - cached.end.lng, 2)
           ) * 111000;
           
-          if (startDist < 100 && endDist < 100 && timeSinceLastFetch < 30000) {
+          if (startDist < 100 && endDist < 100 && timeSinceLastFetch < 10000) {
             console.log('Using cached route (start:', Math.round(startDist), 'm, end:', Math.round(endDist), 'm)');
             return; // Use cached route, don't redraw
           }
@@ -552,6 +639,14 @@ export default function ExpoGoMap({
           const coords = data.routes[0].geometry.coordinates;
           const routePoints = coords.map((coord: [number, number]) => [coord[1], coord[0]]);
 
+          if (onRouteUpdate) {
+            const distanceMeters = data.routes[0].distance;
+            const durationSeconds = data.routes[0].duration;
+            const durationMin = Math.ceil(durationSeconds / 60);
+            const distanceKm = (distanceMeters / 1000).toFixed(1);
+            onRouteUpdate(`${distanceKm} km`, `${durationMin} min`);
+          }
+
           console.log('Route has', routePoints.length, 'points');
 
           // Inject real road route into map
@@ -559,10 +654,31 @@ export default function ExpoGoMap({
             try {
               console.log('Drawing real road route...');
 
-              // Remove old route and arrows if exists
+              // Draw new real road-following route first to avoid flickering
+              const routeCoords = ${JSON.stringify(routePoints)};
+              console.log('Route coords count:', routeCoords.length);
+
+              const newRouteLine = L.polyline(routeCoords, {
+                color: '#3B82F6',
+                weight: 8,
+                opacity: 0.95,
+                lineCap: 'round',
+                lineJoin: 'round',
+                className: 'navigation-route'
+              }).addTo(map);
+
+              const newRouteGlow = L.polyline(routeCoords, {
+                color: '#93C5FD',
+                weight: 14,
+                opacity: 0.4,
+                lineCap: 'round',
+                lineJoin: 'round'
+              }).addTo(map);
+              newRouteGlow.bringToBack();
+
+              // Remove old route and arrows if exists AFTER adding new ones
               if (window.realRouteLine) {
                 map.removeLayer(window.realRouteLine);
-                console.log('Removed old route line');
               }
               if (window.realRouteGlow) {
                 map.removeLayer(window.realRouteGlow);
@@ -573,36 +689,10 @@ export default function ExpoGoMap({
               if (window.fallbackRouteGlow) {
                 map.removeLayer(window.fallbackRouteGlow);
               }
-              if (window.routeArrows) {
-                window.routeArrows.forEach(arrow => map.removeLayer(arrow));
-                window.routeArrows = [];
-              }
-              if (window.arrowAnimationInterval) {
-                clearInterval(window.arrowAnimationInterval);
-                window.arrowAnimationInterval = null;
-              }
-
-              // Draw real road-following route
-              const routeCoords = ${JSON.stringify(routePoints)};
-              console.log('Route coords count:', routeCoords.length);
-
-              window.realRouteLine = L.polyline(routeCoords, {
-                color: '#3B82F6',
-                weight: 8,
-                opacity: 0.95,
-                lineCap: 'round',
-                lineJoin: 'round',
-                className: 'navigation-route'
-              }).addTo(map);
-
-              window.realRouteGlow = L.polyline(routeCoords, {
-                color: '#93C5FD',
-                weight: 14,
-                opacity: 0.4,
-                lineCap: 'round',
-                lineJoin: 'round'
-              }).addTo(map);
-              window.realRouteGlow.bringToBack();
+              
+              // Set the new lines as the current ones
+              window.realRouteLine = newRouteLine;
+              window.realRouteGlow = newRouteGlow;
 
               // Fit map to show entire route only on initial route load
               if (!window.hasFittedRoute) {
@@ -676,7 +766,7 @@ export default function ExpoGoMap({
 
     const js = `
       if (window.updateDriverLocation) {
-        window.updateDriverLocation(${lat}, ${lng}, ${newHeading}, '${timestamp}');
+        window.updateDriverLocation(${lat}, ${lng}, ${newHeading}, '${timestamp}', ${isGpsEnabled});
       }
       if (window.setNavigationMode) {
         window.setNavigationMode(${isNavigating});
@@ -725,7 +815,7 @@ export default function ExpoGoMap({
         <WebView
           ref={fullscreen ? fullscreenWebViewRef : webViewRef}
           originWhitelist={['*']}
-          source={{ html }}
+          source={{ html, baseUrl: '' }}
           style={fullscreen ? styles.fullscreenMap : styles.map}
           javaScriptEnabled={true}
           domStorageEnabled={true}
@@ -806,11 +896,11 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 24,
     position: 'relative',
+    overflow: 'hidden', // Crucial to clip the nested WebView on Android/iOS
   },
   map: {
     width: '100%',
     height: '100%',
-    borderRadius: 24,
   },
   loading: {
     flex: 1,

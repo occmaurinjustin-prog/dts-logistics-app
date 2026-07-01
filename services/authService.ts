@@ -2,8 +2,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-// API Configuration - Render backend
-const API_BASE_URL = 'https://dts-logistics-backend-2.onrender.com/api';
+// API Configuration - Update with your PHP backend URL
+// For React Native development:
+// - Android emulator: use 10.0.2.2 to access host machine
+// - iOS simulator: use localhost
+// - Physical device: use your computer's LAN IP address (e.g., '192.168.1.100')
+const YOUR_COMPUTER_IP = '10.65.49.24'; // <-- For physical Android device
+
+const getApiBaseUrl = () => {
+  if (Platform.OS === 'android') {
+    // Physical Android device uses your computer's IP
+    return `http://10.65.49.24:8000/api`;
+  }
+  // iOS simulator and web can use localhost
+  return 'http://localhost:8000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl(); // Change to your actual backend URL
 
 // Enable mock mode for testing when backend is not available
 const MOCK_MODE = false; // Set to true only for testing without backend
@@ -130,14 +145,6 @@ class AuthService {
 
       return response.data;
     } catch (error: any) {
-      console.error('Login error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        code: error.code
-      });
-
       if (error.response) {
         // Server responded with error
         return {
@@ -157,6 +164,38 @@ class AuthService {
           message: 'An unexpected error occurred. Please try again.',
         };
       }
+    }
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(password: string, password_confirmation: string): Promise<AuthResponse> {
+    try {
+      const response = await api.post('/force-change-password', {
+        password,
+        password_confirmation
+      });
+      
+      if (response.data.success) {
+        const userDataStr = await AsyncStorage.getItem('userData');
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          userData.must_change_password = false;
+          await AsyncStorage.setItem('userData', JSON.stringify(userData));
+        }
+      }
+
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } catch (error: any) {
+      console.error('Password change error:', error.response?.data || error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to change password'
+      };
     }
   }
 

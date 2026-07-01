@@ -1,13 +1,13 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+    Alert,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { DriverProfile } from '../services/driverService';
 
 interface CurrentDeliveryCardProps {
@@ -55,11 +55,11 @@ export default function CurrentDeliveryCard({ driver, onComplete }: CurrentDeliv
         </View>
       </View>
 
-      {/* Tracking Number */}
+      {/* Waybill */}
       <View style={styles.trackingRow}>
         <Ionicons name="barcode-outline" size={16} color="#6B7280" />
         <Text style={styles.trackingNumber}>
-          #{currentDelivery.tracking_number}
+          #{currentDelivery.waybill}
         </Text>
       </View>
 

@@ -129,6 +129,9 @@ export default function ProfileScreen() {
                     router.push('/notifications');
                   } },
     { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => {} },
+    { icon: 'lock-closed-outline', label: 'Change Password', onPress: () => {
+        router.push('/change-password');
+    } },
     { icon: 'settings-outline', label: 'Settings', onPress: () => {} },
   ];
 
@@ -138,7 +141,7 @@ export default function ProfileScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Modern Profile Header with Gradient */}
           <LinearGradient
-            colors={['#22C55E', '#16A34A']}
+            colors={['#0F172A', '#1E293B']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.modernHeader}
@@ -146,7 +149,7 @@ export default function ProfileScreen() {
             <View style={styles.headerContent}>
               <View style={styles.profileImageContainer}>
                 <View style={styles.profileImage}>
-                  <Ionicons name="person" size={36} color="#FFFFFF" />
+                  <Ionicons name="person" size={32} color="#10B981" />
                 </View>
               </View>
               <View style={styles.driverInfo}>
@@ -155,15 +158,17 @@ export default function ProfileScreen() {
                 </Text>
                 <Text style={styles.driverEmail}>{userData?.email || 'driver@example.com'}</Text>
                 <View style={styles.driverBadge}>
-                  <Text style={styles.driverBadgeText}>Driver</Text>
+                  <Ionicons name="shield-checkmark" size={10} color="#10B981" />
+                  <Text style={styles.driverBadgeText}>Verified Driver</Text>
                 </View>
               </View>
             </View>
           </LinearGradient>
 
+
           {/* Menu Items */}
           <View style={styles.menuSection}>
-            <Text style={styles.sectionTitle}>Account</Text>
+            <Text style={styles.sectionTitle}>Account & Fleet Settings</Text>
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
@@ -173,7 +178,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.menuItemLeft}>
                   <View style={styles.menuIcon}>
-                    <Ionicons name={item.icon as any} size={20} color="#111827" />
+                    <Ionicons name={item.icon as any} size={18} color="#0F172A" />
                   </View>
                   <View style={styles.menuItemContent}>
                     <Text style={styles.menuItemText}>{item.label}</Text>
@@ -195,363 +200,224 @@ export default function ProfileScreen() {
                     {item.label === 'Settings' && (
                       <Text style={styles.menuItemSubtitle}>App preferences</Text>
                     )}
+                    {item.label === 'Edit Profile' && (
+                      <Text style={styles.menuItemSubtitle}>Update personal info</Text>
+                    )}
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+                <Ionicons name="chevron-forward" size={14} color="#94A3B8" />
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Logout Button */}
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Ionicons name="log-out" size={20} color="#FFFFFF" />
-            <Text style={styles.logoutButtonText}>Logout</Text>
+            <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+            <Text style={styles.logoutButtonText}>Log Out from Device</Text>
           </TouchableOpacity>
 
           {/* Version Info */}
-          <Text style={styles.versionText}>Version 1.0.0</Text>
+          <Text style={styles.versionText}>Logistics Driver App • Version 1.0.0</Text>
         </ScrollView>
       </SafeAreaView>
-      
-          </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
-    position: 'relative',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
-    paddingTop: 55,
+    paddingTop: Platform.OS === 'ios' ? 0 : 16,
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
 
   // Modern Header Styles
   modernHeader: {
-    height: 230,
-    borderRadius: 28,
-    padding: 24,
+    borderRadius: 20,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    marginTop: Platform.OS === 'ios' ? 16 : 10,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 5,
-    marginBottom: 24,
+    shadowRadius: 16,
+    elevation: 8,
   },
   headerContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   profileImageContainer: {
-    marginBottom: 18,
+    marginRight: 16,
   },
   profileImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 3,
-    borderColor: '#22C55E',
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   driverInfo: {
-    alignItems: 'center',
+    flex: 1,
   },
   driverName: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   driverEmail: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
+    fontWeight: '500',
   },
   driverBadge: {
-    width: 'auto',
-    paddingHorizontal: 14,
-    height: 32,
-    borderRadius: 20,
-    backgroundColor: '#DCFCE7',
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    gap: 4,
   },
   driverBadgeText: {
-    fontSize: 12,
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#2563EB',
+  },
+
+  // Driving Stats Grid
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  statIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  statVal: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#64748B',
     fontWeight: '600',
-    color: '#16A34A',
+    marginTop: 1,
   },
 
   // Menu Items Styles
   menuSection: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 14,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 12,
   },
   menuItem: {
-    height: 72,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    marginBottom: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   menuIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#DCFCE7',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
   },
   menuItemContent: {
     flex: 1,
   },
   menuItemText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
   },
   menuItemSubtitle: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 11,
+    color: '#64748B',
     marginTop: 2,
+    fontWeight: '500',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3BC240',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
+    justifyContent: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    paddingVertical: 14,
+    marginBottom: 20,
+    gap: 6,
   },
   logoutButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#EF4444',
   },
   versionText: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 11,
+    color: '#94A3B8',
     textAlign: 'center',
-    marginBottom: 20,
-  },
-
-  // Modal Styles
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 10,
-  },
-  modalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    width: '90%',
-    maxHeight: '80%',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  modalContent: {
-    padding: 20,
-  },
-
-  // Maintenance Report Styles
-  maintenanceDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 14,
-    textAlign: 'center',
-  },
-  reportInput: {
-    height: 54,
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    fontSize: 16,
-  },
-  reportTextarea: {
-    height: 120,
-    paddingTop: 16,
-  },
-  reportButton: {
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: '#22C55E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 14,
-  },
-  reportButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginTop: 14,
-  },
-  statusBadgeInReview: {
-    backgroundColor: '#FEF3C7',
-  },
-  statusBadgeApproved: {
-    backgroundColor: '#DCFCE7',
-  },
-  statusBadgeFixed: {
-    backgroundColor: '#EDE9FE',
-  },
-  statusBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  statusBadgeTextInReview: {
-    color: '#D97706',
-  },
-  statusBadgeTextApproved: {
-    color: '#16A34A',
-  },
-  statusBadgeTextFixed: {
-    color: '#7C3AED',
-  },
-
-  // Enhanced Modal Styles
-  exampleText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontStyle: 'italic',
-    marginBottom: 8,
-  },
-  priorityContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  priorityButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-  },
-  priorityButtonActive: {
-    backgroundColor: '#22C55E',
-    borderColor: '#22C55E',
-  },
-  priorityButtonText: {
-    fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
-  },
-  priorityButtonTextActive: {
-    color: '#FFFFFF',
-  },
-
-  // Maintenance History Styles
-  historyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  historyId: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  historyTruck: {
-    fontSize: 14,
-    color: '#111827',
-    fontWeight: '600',
-  },
-  historyIssue: {
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 4,
-  },
-  historyDate: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  historyMechanic: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  statusBadgePending: {
-    backgroundColor: '#FEF3C7',
-  },
-  statusBadgeRepairOngoing: {
-    backgroundColor: '#FB923C',
-  },
-  statusBadgeRejected: {
-    backgroundColor: '#FEE2E2',
-  },
-  statusBadgeTextPending: {
-    color: '#D97706',
-  },
-  statusBadgeTextRepairOngoing: {
-    color: '#DC2626',
-  },
-  statusBadgeTextRejected: {
-    color: '#DC2626',
+    marginBottom: 32,
   },
 });
