@@ -257,6 +257,22 @@ class AuthService {
   }
 
   /**
+   * Save user data
+   */
+  async saveUserData(userData: UserData | any): Promise<void> {
+    try {
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      console.log('User data updated in storage');
+      
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('userData', JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
+  }
+
+  /**
    * Debug: Check all stored data
    */
   async debugStorage(): Promise<void> {

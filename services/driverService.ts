@@ -200,7 +200,7 @@ class DriverService {
       if (response.data.success && response.data.driver) {
         // Extract truck information from driver profile
         const driver = response.data.driver;
-        
+
         // Use the enhanced truck information if available, otherwise fallback to legacy format
         if (driver.truck) {
           return {

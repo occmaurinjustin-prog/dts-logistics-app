@@ -94,6 +94,19 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="rescue"
+        options={{
+          title: 'Rescue',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'help-buoy' : 'help-buoy-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
 
 
 

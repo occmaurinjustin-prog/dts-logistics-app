@@ -41,7 +41,7 @@ export default function TruckInformationScreen() {
 
   useEffect(() => {
     fetchTruckInfo();
-    
+
     // Set up periodic refresh every 30 seconds to check for truck assignment changes
     const interval = setInterval(() => {
       fetchTruckInfo();
@@ -56,7 +56,7 @@ export default function TruckInformationScreen() {
         setLoading(true);
       }
       const truckData = await driverService.getDriverTruckInfo();
-      
+
       if (truckData) {
         setTruckInfo({
           plateNumber: truckData.plate_number || 'N/A',
@@ -133,8 +133,8 @@ export default function TruckInformationScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView 
-          style={styles.scrollView} 
+        <ScrollView
+          style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -145,7 +145,7 @@ export default function TruckInformationScreen() {
             />
           }
         >
-          
+
           {/* Last Updated Timestamp */}
           {lastUpdated && (
             <View style={styles.timestampContainer}>
@@ -218,17 +218,17 @@ export default function TruckInformationScreen() {
           {/* Additional Information Section */}
           <View style={styles.additionalInfoCard}>
             <Text style={styles.sectionTitle}>Additional Information</Text>
-            
+
             <View style={styles.infoItem}>
               <Text style={styles.infoItemLabel}>Last Maintenance</Text>
               <Text style={styles.infoItemValue}>{truckInfo.lastMaintenance}</Text>
             </View>
-            
+
             <View style={styles.infoItem}>
               <Text style={styles.infoItemLabel}>Next Inspection Due</Text>
               <Text style={styles.infoItemValue}>{truckInfo.nextInspection}</Text>
             </View>
-            
+
             <View style={styles.infoItem}>
               <Text style={styles.infoItemLabel}>Insurance Status</Text>
               <Text style={styles.infoItemValue}>{truckInfo.insuranceStatus}</Text>
@@ -241,7 +241,7 @@ export default function TruckInformationScreen() {
               <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
               <Text style={styles.actionButtonText}>View Maintenance History</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity style={[styles.actionButton, styles.secondaryButton]}>
               <Ionicons name="build-outline" size={20} color="#10B981" />
               <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>Report Issue</Text>

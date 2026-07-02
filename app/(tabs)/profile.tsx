@@ -11,12 +11,23 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    Image,
+    ActivityIndicator
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+
+const getApiBaseUrl = () => {
+  if (Platform.OS === 'android') {
+    return `http://10.65.49.24:8000/api`;
+  }
+  return 'http://localhost:8000/api';
+};
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   
   useEffect(() => {
@@ -31,7 +42,7 @@ export default function ProfileScreen() {
 
       // Also fetch fresh data from API
       try {
-        const response = await fetch('http://localhost:8000/api/me', {
+        const response = await fetch(`${getApiBaseUrl()}/me`, {
           headers: {
             'Authorization': `Bearer ${await authService.getToken()}`,
             'Content-Type': 'application/json',
@@ -41,6 +52,7 @@ export default function ProfileScreen() {
         if (data.success && data.user) {
           console.log('Fresh user data from API:', data.user);
           setUserData(data.user);
+          await authService.saveUserData(data.user);
         }
       } catch (apiError) {
         console.log('Could not fetch fresh data from API, using cached data');
@@ -135,6 +147,107 @@ export default function ProfileScreen() {
     { icon: 'settings-outline', label: 'Settings', onPress: () => {} },
   ];
 
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        await uploadImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image');
+      console.error(error);
+    }
+  };
+
+  const uploadImage = async (uri: string) => {
+    setIsUploading(true);
+    try {
+      const token = await authService.getToken();
+      
+      const formData = new FormData();
+      const filename = uri.split('/').pop() || 'profile.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : `image/jpeg`;
+      
+      formData.append('image', {
+        uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
+        name: filename,
+        type,
+      } as any);
+
+      const response = await fetch(`${getApiBaseUrl()}/user/profile-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        Alert.alert('Success', 'Profile image updated!');
+        setUserData(data.user);
+        await authService.saveUserData(data.user);
+      } else {
+        Alert.alert('Error', data.message || 'Failed to upload image');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+      console.error(error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeProfileImage = async () => {
+    Alert.alert(
+      'Remove Photo',
+      'Are you sure you want to remove your profile photo?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Remove', 
+          style: 'destructive',
+          onPress: async () => {
+            setIsUploading(true);
+            try {
+              const token = await authService.getToken();
+              const response = await fetch(`${getApiBaseUrl()}/user/profile-image`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Accept': 'application/json',
+                },
+              });
+              
+              const data = await response.json();
+              if (data.success) {
+                Alert.alert('Success', 'Profile image removed!');
+                setUserData(data.user);
+                await authService.saveUserData(data.user);
+              } else {
+                Alert.alert('Error', data.message || 'Failed to remove image');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to remove image');
+            } finally {
+              setIsUploading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -147,16 +260,35 @@ export default function ProfileScreen() {
             style={styles.modernHeader}
           >
             <View style={styles.headerContent}>
-              <View style={styles.profileImageContainer}>
+              <TouchableOpacity onPress={pickImage} style={styles.profileImageContainer} disabled={isUploading}>
                 <View style={styles.profileImage}>
-                  <Ionicons name="person" size={32} color="#10B981" />
+                  {isUploading ? (
+                    <ActivityIndicator size="small" color="#10B981" />
+                  ) : userData?.profile_image ? (
+                    <Image 
+                      source={{ uri: userData.profile_image.startsWith('http') ? userData.profile_image : `http://10.65.49.24:8000/storage/${userData.profile_image}` }} 
+                      style={styles.avatarImage} 
+                    />
+                  ) : (
+                    <Ionicons name="person" size={32} color="#10B981" />
+                  )}
+                  <View style={styles.editBadge}>
+                    <Ionicons name="camera" size={12} color="#FFFFFF" />
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
               <View style={styles.driverInfo}>
                 <Text style={styles.driverName}>
                   {userData?.firstname && userData?.lastname ? `${userData.firstname} ${userData.lastname}` : userData?.username || userData?.name || 'Driver'}
                 </Text>
                 <Text style={styles.driverEmail}>{userData?.email || 'driver@example.com'}</Text>
+                
+                {userData?.profile_image && !isUploading && (
+                  <TouchableOpacity onPress={removeProfileImage} style={styles.removePhotoBtn}>
+                    <Text style={styles.removePhotoText}>Remove Photo</Text>
+                  </TouchableOpacity>
+                )}
+                
                 <View style={styles.driverBadge}>
                   <Ionicons name="shield-checkmark" size={10} color="#10B981" />
                   <Text style={styles.driverBadgeText}>Verified Driver</Text>
@@ -272,6 +404,32 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  avatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#10B981',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  removePhotoBtn: {
+    marginTop: 4,
+  },
+  removePhotoText: {
+    color: '#93C5FD',
+    fontSize: 11,
+    fontWeight: '600',
   },
   driverInfo: {
     flex: 1,
