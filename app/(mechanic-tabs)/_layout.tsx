@@ -57,15 +57,6 @@ export default function MechanicTabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="rescue-assignment"
-        options={{
-          title: 'Rescue HUD',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'alert-circle' : 'alert-circle-outline'} size={24} color={color} />
-          ),
-        }}
-      />
 
       <Tabs.Screen
         name="face-attendance"
