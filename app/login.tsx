@@ -5,9 +5,11 @@ import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    ImageBackground,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    StatusBar,
     StyleSheet,
     Text,
     TextInput,
@@ -15,39 +17,27 @@ import {
     View,
 } from 'react-native';
 
+const BG_IMAGE = 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1200';
+
 export default function LoginScreen() {
   const router = useRouter();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [focusedField, setFocusedField] = useState<
-    'username' | 'password' | null
-  >(null);
-
   const [rememberMe, setRememberMe] = useState(false);
 
-  // ERRORS
   const [errors, setErrors] = useState({
     username: '',
     password: '',
     general: '',
   });
 
-  // VALIDATION
   const validateInputs = (): boolean => {
     let valid = true;
+    const newErrors = { username: '', password: '', general: '' };
 
-    const newErrors = {
-      username: '',
-      password: '',
-      general: '',
-    };
-
-    // EMAIL VALIDATION
     if (!username.trim()) {
       newErrors.username = 'Email is required';
       valid = false;
@@ -56,7 +46,6 @@ export default function LoginScreen() {
       valid = false;
     }
 
-    // PASSWORD VALIDATION
     if (!password.trim()) {
       newErrors.password = 'Password is required';
       valid = false;
@@ -66,25 +55,13 @@ export default function LoginScreen() {
     }
 
     setErrors(newErrors);
-
     return valid;
   };
 
-  // LOGIN
   const handleLogin = async () => {
-    // CLEAR OLD ERRORS
-    setErrors({
-      username: '',
-      password: '',
-      general: '',
-    });
+    setErrors({ username: '', password: '', general: '' });
 
-    // VALIDATE
-    if (!validateInputs()) {
-      return;
-    }
-
-    // PREVENT DOUBLE CLICK
+    if (!validateInputs()) return;
     if (isLoading) return;
 
     setIsLoading(true);
@@ -95,482 +72,191 @@ export default function LoginScreen() {
         password,
       });
 
-      // SUCCESS
       if (response.success) {
-        console.log('Login successful');
-        console.log('Response user:', response.user);
-        console.log('Response user role:', response.user?.role);
-
         const isWeb = Platform.OS === 'web';
         const userRole = response.user?.role;
+        const targetRoute = userRole === 'mechanic' ? '/(mechanic-tabs)' : '/(tabs)';
 
-        console.log('Is Web:', isWeb);
-        console.log('User Role:', userRole);
-        console.log('Is Mechanic:', userRole === 'mechanic');
-
-        if (
-          isWeb &&
-          typeof window !== 'undefined' &&
-          typeof window.location?.href === 'string'
-        ) {
-          const targetRoute = userRole === 'mechanic' ? '/(mechanic-tabs)' : '/(tabs)';
-          console.log('Redirecting to (web):', targetRoute);
+        if (isWeb && typeof window !== 'undefined' && typeof window.location?.href === 'string') {
           window.location.href = targetRoute;
         } else {
           setTimeout(() => {
-            const targetRoute = userRole === 'mechanic' ? '/(mechanic-tabs)' : '/(tabs)';
-            console.log('Redirecting to (mobile):', targetRoute);
             router.replace(targetRoute as any);
           }, 500);
         }
       } else {
-        // INVALID CREDENTIALS
-        if (
-          response.message?.toLowerCase().includes('invalid credentials')
-        ) {
-          setErrors((prev) => ({
-            ...prev,
-            password: 'Incorrect password',
-          }));
+        if (response.message?.toLowerCase().includes('invalid credentials')) {
+          setErrors(prev => ({ ...prev, password: 'Incorrect password' }));
         } else {
-          setErrors((prev) => ({
-            ...prev,
-            general: response.message || 'Login failed',
-          }));
+          setErrors(prev => ({ ...prev, general: response.message || 'Login failed' }));
         }
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-
-      // AXIOS 422 ERROR
       if (error.response?.status === 422) {
-        const message =
-          error.response?.data?.message || 'Invalid credentials';
-
+        const message = error.response?.data?.message || 'Invalid credentials';
         if (message.toLowerCase().includes('invalid credentials')) {
-          setErrors((prev) => ({
-            ...prev,
-            password: 'Incorrect password',
-          }));
+          setErrors(prev => ({ ...prev, password: 'Incorrect password' }));
         } else {
-          setErrors((prev) => ({
-            ...prev,
-            password: message,
-          }));
+          setErrors(prev => ({ ...prev, password: message }));
         }
       } else {
-        setErrors((prev) => ({
-          ...prev,
-          general: 'Server error. Please try again.',
-        }));
+        setErrors(prev => ({ ...prev, general: 'Server error. Please try again.' }));
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // FORGOT PASSWORD
   const handleForgotPassword = () => {
-    Alert.alert(
-      'Reset Password',
-      'Password reset functionality will be implemented.',
-      [{ text: 'OK' }]
-    );
+    Alert.alert('Reset Password', 'Password reset functionality will be implemented.', [{ text: 'OK' }]);
   };
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardContainer}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    <View style={s.bg}>
+      <ImageBackground source={{ uri: BG_IMAGE }} style={StyleSheet.absoluteFillObject} blurRadius={Platform.OS === 'ios' ? 8 : 3} />
+      <View style={s.overlay} />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.keyboardContainer}>
+        <ScrollView 
+          contentContainerStyle={s.scrollContent} 
+          keyboardShouldPersistTaps="always" 
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.card}>
-            {/* TITLE */}
-            <Text style={styles.title}>DTS Driver App</Text>
+          
+          <View style={s.headerWrap}>
+            <View style={s.logoWrap}>
+              <Ionicons name="cube" size={42} color="#10B981" />
+            </View>
+            <Text style={s.brandTitle}>DTS Fleet</Text>
+            <Text style={s.brandSubtitle}>Intelligent Logistics Management</Text>
+          </View>
 
-            <Text style={styles.subtitle}>
-              Access your delivery dashboard
-            </Text>
+          <View style={s.card}>
+            <Text style={s.cardTitle}>Welcome Back</Text>
+            <Text style={s.cardSubtitle}>Sign in to your driver or mechanic account</Text>
 
-            {/* GENERAL ERROR */}
             {errors.general ? (
-              <View style={styles.errorContainer}>
-                <Ionicons
-                  name="alert-circle"
-                  size={20}
-                  color="#DC2626"
-                />
-
-                <Text style={styles.errorText}>
-                  {errors.general}
-                </Text>
+              <View style={s.errorAlert}>
+                <Ionicons name="alert-circle" size={20} color="#EF4444" />
+                <Text style={s.errorAlertText}>{errors.general}</Text>
               </View>
             ) : null}
 
             {/* EMAIL */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Email</Text>
-
-              <View
-                style={[
-                  styles.inputContainer,
-                  focusedField === 'username' &&
-                    styles.inputContainerFocused,
-                  errors.username && styles.inputError,
-                ]}
-              >
-                <Ionicons
-                  name="person-outline"
-                  size={20}
-                  color={
-                    focusedField === 'username'
-                      ? '#9CA3AF'
-                      : '#3BC240'
-                  }
-                />
-
+            <View style={s.fieldWrap}>
+              <Text style={s.label}>Email Address</Text>
+              <View style={[s.inputWrap, errors.username ? s.inputWrapError : null]}>
+                <Ionicons name="mail-outline" size={20} color="#94A3B8" style={s.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={s.input}
                   placeholder="Enter your email"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#94A3B8"
                   value={username}
-                  onChangeText={(text) => {
+                  onChangeText={text => {
                     setUsername(text);
-
-                    // CLEAR EMAIL ERROR
-                    if (errors.username) {
-                      setErrors((prev) => ({
-                        ...prev,
-                        username: '',
-                      }));
-                    }
+                    if (errors.username) setErrors(prev => ({ ...prev, username: '' }));
                   }}
-                  onFocus={() => setFocusedField('username')}
-                  onBlur={() => setFocusedField(null)}
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="email-address"
                 />
               </View>
-
-              {/* EMAIL ERROR */}
-              {errors.username ? (
-                <Text style={styles.validationText}>
-                  {errors.username}
-                </Text>
-              ) : null}
+              {errors.username ? <Text style={s.errorText}>{errors.username}</Text> : null}
             </View>
 
             {/* PASSWORD */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Password</Text>
-
-              <View
-                style={[
-                  styles.inputContainer,
-                  focusedField === 'password' &&
-                    styles.inputContainerFocused,
-                  errors.password && styles.inputError,
-                ]}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={
-                    focusedField === 'password'
-                      ? '#9CA3AF'
-                      : '#3BC240'
-                  }
-                />
-
+            <View style={s.fieldWrap}>
+              <Text style={s.label}>Password</Text>
+              <View style={[s.inputWrap, errors.password ? s.inputWrapError : null]}>
+                <Ionicons name="lock-closed-outline" size={20} color="#94A3B8" style={s.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={s.input}
                   placeholder="Enter your password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#94A3B8"
                   value={password}
-                  onChangeText={(text) => {
+                  onChangeText={text => {
                     setPassword(text);
-
-                    // CLEAR PASSWORD ERROR
-                    if (errors.password) {
-                      setErrors((prev) => ({
-                        ...prev,
-                        password: '',
-                      }));
-                    }
+                    if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
                   }}
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={() => setFocusedField(null)}
                   secureTextEntry={!isPasswordVisible}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
-
-                <TouchableOpacity
-                  onPress={() =>
-                    setIsPasswordVisible(!isPasswordVisible)
-                  }
-                  style={styles.eyeIcon}
-                >
-                  <Ionicons
-                    name={
-                      isPasswordVisible
-                        ? 'eye-outline'
-                        : 'eye-off-outline'
-                    }
-                    size={20}
-                    color="#9CA3AF"
-                  />
+                <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} style={s.eyeIcon}>
+                  <Ionicons name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'} size={20} color="#94A3B8" />
                 </TouchableOpacity>
               </View>
-
-              {/* PASSWORD ERROR */}
-              {errors.password ? (
-                <Text style={styles.validationText}>
-                  {errors.password}
-                </Text>
-              ) : null}
+              {errors.password ? <Text style={s.errorText}>{errors.password}</Text> : null}
             </View>
 
-            {/* REMEMBER ME */}
-            <View style={styles.rememberForgotContainer}>
-              <TouchableOpacity
-                onPress={() => setRememberMe(!rememberMe)}
-                style={styles.checkboxContainer}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    rememberMe && styles.checkboxChecked,
-                  ]}
-                >
-                  {rememberMe && (
-                    <Ionicons
-                      name="checkmark"
-                      size={14}
-                      color="#3BC240"
-                    />
-                  )}
+            {/* REMEMBER & FORGOT */}
+            <View style={s.rowBetween}>
+              <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={s.rowCenter} activeOpacity={0.7}>
+                <View style={[s.checkbox, rememberMe && s.checkboxActive]}>
+                  {rememberMe && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
                 </View>
-
-                <Text style={styles.checkboxLabel}>
-                  Remember me
-                </Text>
+                <Text style={s.checkboxLabel}>Remember me</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleForgotPassword}
-              >
-                <Text style={styles.forgotPasswordText}>
-                  Forgot Password?
-                </Text>
+              <TouchableOpacity onPress={handleForgotPassword}>
+                <Text style={s.forgotText}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
 
             {/* LOGIN BUTTON */}
-            <TouchableOpacity
-              onPress={handleLogin}
-              disabled={isLoading}
-              style={[
-                styles.signInButton,
-                isLoading && styles.signInButtonDisabled,
-              ]}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity onPress={handleLogin} disabled={isLoading} style={[s.btn, isLoading && s.btnDisabled]} activeOpacity={0.8}>
               {isLoading ? (
-                <ActivityIndicator
-                  color="#FFFFFF"
-                  size="small"
-                />
+                <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.signInButtonText}>
-                  Sign In
-                </Text>
+                <>
+                  <Text style={s.btnText}>Sign In</Text>
+                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                </>
               )}
             </TouchableOpacity>
           </View>
+          
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+const s = StyleSheet.create({
+  bg: { flex: 1, backgroundColor: '#0F172A' },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 23, 42, 0.75)' },
+  keyboardContainer: { flex: 1 },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24 },
 
-  keyboardContainer: {
-    flex: 1,
-  },
+  headerWrap: { alignItems: 'center', marginBottom: 40, marginTop: Platform.OS === 'ios' ? 40 : 20 },
+  logoWrap: { width: 80, height: 80, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  brandTitle: { fontSize: 32, fontWeight: '800', color: '#FFFFFF', letterSpacing: 1 },
+  brandSubtitle: { fontSize: 14, color: '#94A3B8', fontWeight: '500', marginTop: 4, letterSpacing: 0.5 },
 
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-  },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 24, padding: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.15, shadowRadius: 32, elevation: 10 },
+  cardTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', marginBottom: 6, letterSpacing: -0.5 },
+  cardSubtitle: { fontSize: 14, color: '#64748B', fontWeight: '500', marginBottom: 32 },
 
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    borderWidth: 1,
-    borderColor: '#3BC240',
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 4,
-  },
+  errorAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', borderRadius: 12, padding: 14, marginBottom: 24, borderWidth: 1, borderColor: '#FECACA' },
+  errorAlertText: { color: '#DC2626', fontSize: 14, fontWeight: '500', marginLeft: 8, flex: 1 },
 
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#070907',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
+  fieldWrap: { marginBottom: 20 },
+  label: { fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 56, borderWidth: 1.5, borderColor: '#E2E8F0' },
+  inputWrapError: { borderColor: '#EF4444', backgroundColor: '#FEF2F2' },
+  inputIcon: { marginRight: 12 },
+  input: { flex: 1, color: '#0F172A', fontSize: 16, fontWeight: '500', height: '100%' },
+  eyeIcon: { padding: 8, marginRight: -8 },
+  errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', marginTop: 6, marginLeft: 4 },
 
-  subtitle: {
-    fontSize: 14,
-    color: '#070907',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 32 },
+  rowCenter: { flexDirection: 'row', alignItems: 'center' },
+  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 2, borderColor: '#CBD5E1', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  checkboxActive: { backgroundColor: '#10B981', borderColor: '#10B981' },
+  checkboxLabel: { fontSize: 14, fontWeight: '600', color: '#475569' },
+  forgotText: { color: '#10B981', fontSize: 14, fontWeight: '700' },
 
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-
-  errorText: {
-    color: '#DC2626',
-    fontSize: 14,
-    marginLeft: 8,
-    flex: 1,
-  },
-
-  fieldContainer: {
-    marginBottom: 20,
-  },
-
-  label: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#070907',
-    marginBottom: 8,
-  },
-
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: '#3BC240',
-  },
-
-  inputContainerFocused: {
-    borderColor: '#9CA3AF',
-    borderWidth: 1.5,
-  },
-
-  inputError: {
-    borderColor: '#DC2626',
-  },
-
-  input: {
-    flex: 1,
-    color: '#54698c',
-    fontSize: 15,
-    marginLeft: 10,
-  },
-
-  eyeIcon: {
-    padding: 4,
-  },
-
-  validationText: {
-    color: '#DC2626',
-    fontSize: 12,
-    marginTop: 5,
-    marginLeft: 4,
-  },
-
-  rememberForgotContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: '#3BC240',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-
-  checkboxChecked: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#3BC240',
-  },
-
-  checkboxLabel: {
-    fontSize: 14,
-    color: '#3BC240',
-  },
-
-  forgotPasswordText: {
-    color: '#3BC240',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-
-  signInButton: {
-    backgroundColor: '#3BC240',
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#3BC240',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-
-  signInButtonDisabled: {
-    opacity: 0.7,
-  },
-
-  signInButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  btn: { backgroundColor: '#10B981', borderRadius: 16, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 4 },
+  btnDisabled: { opacity: 0.6 },
+  btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
 });

@@ -205,12 +205,12 @@ export default function RouteScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return '#10B981';
+        return '#0F6B5A';
       case 'in_transit':
       case 'in_progress':
         return '#F59E0B';
       case 'active':
-        return '#3B82F6';
+        return '#2A9D8F';
       case 'pending':
         return '#6B7280';
       default:
@@ -220,12 +220,12 @@ export default function RouteScreen() {
 
   const getStopIcon = (type: string, status: string, index: number) => {
     if (status === 'completed') {
-      return <Ionicons name="checkmark-circle" size={20} color="#10B981" />;
+      return <Ionicons name="checkmark-circle" size={20} color="#0F6B5A" />;
     }
     if (type === 'pickup') {
-      return <Ionicons name="arrow-up-circle" size={20} color="#3B82F6" />;
+      return <Ionicons name="arrow-up-circle" size={20} color="#2A9D8F" />;
     }
-    return <Ionicons name="location" size={20} color={index === activeStop ? '#EF4444' : '#64748B'} />;
+    return <Ionicons name="location" size={20} color={index === activeStop ? '#EF4444' : '#6F8B84'} />;
   };
 
   const selectedRouteData = routes.find(r => r.id === selectedRoute);
@@ -237,7 +237,7 @@ export default function RouteScreen() {
 
     // Soft palette color scheme
     const themeColor = stop.type === 'pickup' ? '#2563EB' : '#059669';
-    const badgeBg = stop.type === 'pickup' ? '#EFF6FF' : '#ECFDF5';
+    const badgeBg = stop.type === 'pickup' ? '#EFF6FF' : '#E3F2EB';
 
     return (
       <View key={stop.id} style={styles.stopItem}>
@@ -251,7 +251,7 @@ export default function RouteScreen() {
             <Text style={[
               styles.timelineNumber,
               (isCompleted || isActive) && styles.timelineNumberActive,
-              isCompleted && { color: '#10B981' }
+              isCompleted && { color: '#0F6B5A' }
             ]}>
               {index + 1}
             </Text>
@@ -300,7 +300,7 @@ export default function RouteScreen() {
           
           {/* Address */}
           <View style={styles.addressRow}>
-            <Ionicons name="location-outline" size={14} color="#64748B" />
+            <Ionicons name="location-outline" size={14} color="#6F8B84" />
             <Text style={styles.stopAddress} numberOfLines={2}>
               {stop.type === 'pickup' ? stop.address : stop.delivery_address}
             </Text>
@@ -308,18 +308,18 @@ export default function RouteScreen() {
 
           {/* Contact */}
           <View style={styles.contactRow}>
-            <Ionicons name="call-outline" size={12} color="#64748B" />
+            <Ionicons name="call-outline" size={12} color="#6F8B84" />
             <Text style={styles.stopContact}>{stop.contact}</Text>
           </View>
 
           {/* Weight & Tracking */}
           <View style={styles.stopMeta}>
             <View style={styles.metaItem}>
-              <Ionicons name="cube-outline" size={12} color="#64748B" />
+              <Ionicons name="cube-outline" size={12} color="#6F8B84" />
               <Text style={styles.metaText}>{stop.weight}</Text>
             </View>
             <View style={styles.metaItem}>
-              <Ionicons name="barcode-outline" size={12} color="#64748B" />
+              <Ionicons name="barcode-outline" size={12} color="#6F8B84" />
               <Text style={styles.metaText}>#{stop.waybill}</Text>
             </View>
           </View>
@@ -341,7 +341,7 @@ export default function RouteScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size="large" color="#0F6B5A" />
           <Text style={styles.loadingText}>Synchronizing route...</Text>
         </View>
       </SafeAreaView>
@@ -362,11 +362,11 @@ export default function RouteScreen() {
         </View>
         <ScrollView 
           style={styles.scrollView}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F6B5A" />}
           contentContainerStyle={styles.emptyScrollContent}
         >
           <View style={styles.emptyContainer}>
-            <Ionicons name="map-outline" size={60} color="#94A3B8" />
+            <Ionicons name="map-outline" size={60} color="#9AB7AF" />
             <Text style={styles.emptyTitle}>No Active Route</Text>
             <Text style={styles.emptyText}>
               You don't have any assigned deliveries yet.{'\n'}
@@ -403,12 +403,12 @@ export default function RouteScreen() {
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F6B5A" />}
       >
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
-            <Ionicons name="navigate-circle" size={28} color="#10B981" />
+            <Ionicons name="navigate-circle" size={28} color="#0F6B5A" />
             <View style={styles.summaryTitleContainer}>
               <Text style={styles.summaryTitle}>Route Dispatch Summary</Text>
               <Text style={styles.summaryDate}>{selectedRouteData?.date}</Text>
@@ -418,7 +418,7 @@ export default function RouteScreen() {
           <View style={styles.summaryStats}>
             <View style={styles.statItem}>
               <View style={[styles.statIcon, { backgroundColor: '#EFF6FF' }]}>
-                <Ionicons name="cube" size={16} color="#3B82F6" />
+                <Ionicons name="cube" size={16} color="#2A9D8F" />
               </View>
               <Text style={styles.statValue}>{selectedRouteData?.total_stops || 0}</Text>
               <Text style={styles.statLabel}>Stops</Text>
@@ -437,8 +437,8 @@ export default function RouteScreen() {
             <View style={styles.statDivider} />
 
             <View style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: '#ECFDF5' }]}>
-                <Ionicons name="speedometer" size={16} color="#10B981" />
+              <View style={[styles.statIcon, { backgroundColor: '#E3F2EB' }]}>
+                <Ionicons name="speedometer" size={16} color="#0F6B5A" />
               </View>
               <Text style={styles.statValue}>{selectedRouteData?.total_distance || '0 km'}</Text>
               <Text style={styles.statLabel}>Distance</Text>
@@ -496,7 +496,7 @@ export default function RouteScreen() {
             style={styles.secondaryActionButton}
             onPress={() => setShowFullMap(true)}
           >
-            <Ionicons name="map-outline" size={16} color="#0F172A" />
+            <Ionicons name="map-outline" size={16} color="#23423B" />
             <Text style={styles.secondaryActionText}>View Full Route Stops</Text>
           </TouchableOpacity>
         </View>
@@ -515,7 +515,7 @@ export default function RouteScreen() {
           {/* Modal Header */}
           <View style={styles.fullscreenMapHeader}>
             <TouchableOpacity onPress={() => setShowFullMap(false)} style={styles.closeMapButton}>
-              <Ionicons name="close" size={20} color="#64748B" />
+              <Ionicons name="close" size={20} color="#6F8B84" />
             </TouchableOpacity>
             <Text style={styles.fullscreenMapTitle}>Route Stops Index</Text>
             <View style={{ width: 36 }} />
@@ -525,15 +525,15 @@ export default function RouteScreen() {
           <ScrollView style={styles.fullscreenMapContent}>
             <View style={styles.mapLegend}>
               <View style={styles.mapLegendItem}>
-                <View style={[styles.mapLegendDot, { backgroundColor: '#3B82F6' }]} />
+                <View style={[styles.mapLegendDot, { backgroundColor: '#2A9D8F' }]} />
                 <Text style={styles.mapLegendText}>Pickup Stop</Text>
               </View>
               <View style={styles.mapLegendItem}>
-                <View style={[styles.mapLegendDot, { backgroundColor: '#10B981' }]} />
+                <View style={[styles.mapLegendDot, { backgroundColor: '#0F6B5A' }]} />
                 <Text style={styles.mapLegendText}>Delivery Drop</Text>
               </View>
               <View style={styles.mapLegendItem}>
-                <View style={[styles.mapLegendDot, { backgroundColor: '#94A3B8' }]} />
+                <View style={[styles.mapLegendDot, { backgroundColor: '#9AB7AF' }]} />
                 <Text style={styles.mapLegendText}>Completed</Text>
               </View>
             </View>
@@ -544,13 +544,13 @@ export default function RouteScreen() {
                 <View key={stop.id} style={styles.mapStopItem}>
                   <View style={[
                     styles.mapStopNumber,
-                    stop.status === 'completed' && { backgroundColor: '#F1F5F9' },
+                    stop.status === 'completed' && { backgroundColor: '#EEF4F1' },
                     stop.status !== 'completed' && stop.type === 'pickup' && { backgroundColor: '#EFF6FF' },
-                    stop.status !== 'completed' && stop.type === 'delivery' && { backgroundColor: '#ECFDF5' },
+                    stop.status !== 'completed' && stop.type === 'delivery' && { backgroundColor: '#E3F2EB' },
                   ]}>
                     <Text style={[
                       styles.mapStopNumberText,
-                      stop.status === 'completed' && { color: '#94A3B8' },
+                      stop.status === 'completed' && { color: '#9AB7AF' },
                       stop.status !== 'completed' && stop.type === 'pickup' && { color: '#2563EB' },
                       stop.status !== 'completed' && stop.type === 'delivery' && { color: '#047857' },
                     ]}>{index + 1}</Text>
@@ -566,7 +566,7 @@ export default function RouteScreen() {
                   <Ionicons 
                     name={stop.status === 'completed' ? 'checkmark-circle' : 'location'} 
                     size={20} 
-                    color={stop.status === 'completed' ? '#10B981' : '#64748B'} 
+                    color={stop.status === 'completed' ? '#0F6B5A' : '#6F8B84'} 
                   />
                 </View>
               ))}
@@ -593,18 +593,18 @@ export default function RouteScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '600',
   },
 
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
   },
   headerContent: {
     flexDirection: 'row',
@@ -625,18 +625,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     marginTop: 2,
     fontWeight: '600',
   },
   mapButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0F6B5A',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
@@ -677,11 +677,11 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   summaryDate: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -708,12 +708,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 2,
   },
   statLabel: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: '#9AB7AF',
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -721,16 +721,16 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 36,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#D8E7E1',
   },
 
   // Progress
   progressContainer: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   progressHeader: {
     flexDirection: 'row',
@@ -741,22 +741,22 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#6F8B84',
   },
   progressPercent: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#10B981',
+    color: '#0F6B5A',
   },
   progressBar: {
     height: 6,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#D8E7E1',
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
     borderRadius: 3,
   },
 
@@ -775,13 +775,13 @@ const styles = StyleSheet.create({
   stopsTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   stopsCount: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#10B981',
-    backgroundColor: '#ECFDF5',
+    color: '#0F6B5A',
+    backgroundColor: '#E3F2EB',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -807,21 +807,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#CBD5E1',
+    borderColor: '#C7DDD5',
     zIndex: 10,
   },
   timelineDotActive: {
-    borderColor: '#10B981',
-    backgroundColor: '#10B981',
+    borderColor: '#0F6B5A',
+    backgroundColor: '#0F6B5A',
   },
   timelineDotCompleted: {
-    borderColor: '#10B981',
-    backgroundColor: '#ECFDF5',
+    borderColor: '#0F6B5A',
+    backgroundColor: '#E3F2EB',
   },
   timelineNumber: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#64748B',
+    color: '#6F8B84',
   },
   timelineNumberActive: {
     color: '#FFFFFF',
@@ -829,11 +829,11 @@ const styles = StyleSheet.create({
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#D8E7E1',
     marginTop: -2,
   },
   timelineLineCompleted: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
   },
 
   // Stop Card
@@ -844,14 +844,14 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   stopCardActive: {
-    borderColor: '#10B981',
+    borderColor: '#0F6B5A',
     borderWidth: 1.5,
   },
   stopCardCompleted: {
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     opacity: 0.75,
   },
   stopHeader: {
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF2F6',
   },
   deliveryBadge: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E3F2EB',
   },
   stopTypeText: {
     fontSize: 9,
@@ -887,10 +887,10 @@ const styles = StyleSheet.create({
   stopTime: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#6F8B84',
   },
   activeBadge: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0F6B5A',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
   stopCustomer: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 6,
   },
   addressRow: {
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
   stopAddress: {
     flex: 1,
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     lineHeight: 16,
     fontWeight: '600',
   },
@@ -928,7 +928,7 @@ const styles = StyleSheet.create({
   },
   stopContact: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '600',
   },
   stopMeta: {
@@ -943,24 +943,24 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '600',
   },
   notesContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
     padding: 8,
     borderRadius: 8,
     marginTop: 4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   notesText: {
     flex: 1,
     fontSize: 11,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '600',
     lineHeight: 16,
   },
@@ -974,7 +974,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0F6B5A',
     paddingVertical: 14,
     borderRadius: 10,
     gap: 8,
@@ -993,10 +993,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   secondaryActionText: {
-    color: '#0F172A',
+    color: '#23423B',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -1018,19 +1018,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     marginTop: 16,
     marginBottom: 4,
   },
   emptyText: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#6F8B84',
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 16,
   },
   emptyActionButton: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0F6B5A',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -1044,7 +1044,7 @@ const styles = StyleSheet.create({
   // Fullscreen Map Modal Styles
   fullscreenMapContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   fullscreenMapHeader: {
     flexDirection: 'row',
@@ -1055,24 +1055,24 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
   },
   closeMapButton: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EEF4F1',
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullscreenMapTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   fullscreenMapContent: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
     padding: 16,
   },
   mapLegend: {
@@ -1084,7 +1084,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   mapLegendItem: {
     flexDirection: 'row',
@@ -1099,7 +1099,7 @@ const styles = StyleSheet.create({
   mapLegendText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#6F8B84',
   },
   mapStopsList: {
     gap: 10,
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   mapStopNumber: {
     width: 32,
@@ -1126,7 +1126,7 @@ const styles = StyleSheet.create({
   mapStopNumberText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#6F8B84',
   },
   mapStopContent: {
     flex: 1,
@@ -1134,7 +1134,7 @@ const styles = StyleSheet.create({
   mapStopType: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#10B981',
+    color: '#0F6B5A',
     marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1142,19 +1142,19 @@ const styles = StyleSheet.create({
   mapStopCustomer: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 2,
   },
   mapStopAddress: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#6F8B84',
     lineHeight: 16,
   },
   fullscreenNavigateButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0F6B5A',
     paddingVertical: 14,
     borderRadius: 10,
     gap: 8,

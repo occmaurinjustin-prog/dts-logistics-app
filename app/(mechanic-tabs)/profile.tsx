@@ -164,7 +164,7 @@ export default function MechanicProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <StatusBar barStyle="dark-content" backgroundColor="#DDE9E3" />
       <SafeAreaView style={styles.safeArea}>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
@@ -175,7 +175,7 @@ export default function MechanicProfileScreen() {
             <TouchableOpacity onPress={pickImage} style={styles.avatarContainer} disabled={isUploading}>
               <View style={styles.avatarLarge}>
                 {isUploading ? (
-                  <ActivityIndicator size="large" color="#0F172A" />
+                  <ActivityIndicator size="large" color="#23423B" />
                 ) : userData?.profile_image ? (
                   <Image 
                     source={{ uri: userData.profile_image.startsWith('http') ? userData.profile_image : `http://10.65.49.24:8000/storage/${userData.profile_image}` }} 
@@ -203,8 +203,8 @@ export default function MechanicProfileScreen() {
 
           <View style={styles.actionsSection}>
             <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/change-password')}>
-              <Ionicons name="lock-closed-outline" size={24} color="#64748B" />
-              <Text style={[styles.actionButtonText, { color: '#64748B' }]}>Change Password</Text>
+              <Ionicons name="lock-closed-outline" size={24} color="#6F8B84" />
+              <Text style={[styles.actionButtonText, { color: '#6F8B84' }]}>Change Password</Text>
             </TouchableOpacity>
             
             <View style={styles.divider} />
@@ -221,20 +221,20 @@ export default function MechanicProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#DDE9E3' },
   safeArea: { flex: 1 },
   scrollView: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
   header: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
     marginBottom: 24,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   profileSection: {
     alignItems: 'center',
@@ -247,12 +247,12 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#D8E7E1',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
     borderColor: '#FFFFFF',
-    shadowColor: '#0F172A',
+    shadowColor: '#23423B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   avatarTextLarge: {
     fontSize: 40,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   removePhotoBtn: {
     marginBottom: 16,
@@ -293,30 +293,30 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 4,
   },
   profileRole: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#10B981',
+    color: '#0F6B5A',
     letterSpacing: 1,
     marginBottom: 4,
   },
   profileUsername: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6F8B84',
   },
   actionsSection: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     overflow: 'hidden',
   },
   divider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#D8E7E1',
   },
   actionButton: {
     flexDirection: 'row',

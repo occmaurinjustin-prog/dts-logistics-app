@@ -61,17 +61,34 @@ export default function MechanicAssignmentsScreen() {
         },
       });
 
+      const rescueResponse = await fetch('http://10.65.49.24:8000/api/rescue/mechanic/assignments', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
       if (!response.ok) {
         throw new Error('Failed to fetch assignments');
       }
 
       const data = await response.json();
+      const rescueData = await rescueResponse.json();
       
-      if (data.success && data.assignments) {
-        setAssignments(data.assignments);
-      } else {
-        setAssignments([]);
+      let allAssignments: any[] = [];
+      
+      if (rescueData.data) {
+        // Tag rescue assignments
+        const rescues = rescueData.data.map((r: any) => ({ ...r, is_rescue: true }));
+        allAssignments = [...allAssignments, ...rescues];
       }
+
+      if (data.success && data.assignments) {
+        allAssignments = [...allAssignments, ...data.assignments];
+      }
+      
+      setAssignments(allAssignments);
     } catch (error) {
       console.error('Error fetching assignments:', error);
       Alert.alert('Error', 'Failed to load assignments');
@@ -121,7 +138,7 @@ export default function MechanicAssignmentsScreen() {
     switch (priority) {
       case 'emergency': return '#DC2626';
       case 'high': return '#F59E0B';
-      case 'medium': return '#3B82F6';
+      case 'medium': return '#2A9D8F';
       case 'low': return '#6B7280';
       default: return '#6B7280';
     }
@@ -129,8 +146,8 @@ export default function MechanicAssignmentsScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return '#10B981';
-      case 'scheduled': return '#10B981';
+      case 'approved': return '#0F6B5A';
+      case 'scheduled': return '#0F6B5A';
       case 'in_progress': return '#F59E0B';
       case 'completed': return '#6B7280';
       default: return '#6B7280';
@@ -159,6 +176,7 @@ export default function MechanicAssignmentsScreen() {
   const filteredAssignments = assignments.filter(assignment => {
     if (filterStatus === 'all') return true;
     if (filterStatus === 'scheduled') return assignment.status === 'scheduled' || assignment.status === 'approved';
+    if (filterStatus === 'completed') return assignment.status === 'completed' || assignment.status === 'resolved';
     return assignment.status === filterStatus;
   });
 
@@ -172,7 +190,7 @@ export default function MechanicAssignmentsScreen() {
             <Ionicons 
               name="refresh" 
               size={20} 
-              color="#0F172A" 
+              color="#23423B" 
               style={refreshing ? { transform: [{ rotate: '180deg' }] } : {}}
             />
           </TouchableOpacity>
@@ -198,7 +216,7 @@ export default function MechanicAssignmentsScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#10B981" />
+              <ActivityIndicator size="large" color="#0F6B5A" />
               <Text style={styles.loadingText}>Loading assignments...</Text>
             </View>
           ) : filteredAssignments.length === 0 ? (
@@ -213,9 +231,43 @@ export default function MechanicAssignmentsScreen() {
             </View>
           ) : (
             <View style={styles.assignmentsList}>
-              {filteredAssignments.map((assignment) => (
+              {filteredAssignments.map((assignment) => {
+                if (assignment.is_rescue) {
+                    const isResolved = assignment.status === 'resolved';
+                    const mainColor = isResolved ? '#0F6B5A' : '#EF4444';
+                    const bgColor = isResolved ? '#BFE8D8' : '#FEE2E2';
+
+                    return (
+                        <TouchableOpacity
+                            key={`rescue-${assignment.rescue_id}`}
+                            style={[styles.assignmentCard, { borderColor: mainColor, borderWidth: 2 }]}
+                            activeOpacity={0.7}
+                            onPress={() => router.push({ pathname: '/rescue-mission', params: { id: assignment.rescue_id } })}
+                        >
+                            <View style={styles.cardHeader}>
+                                <View style={styles.truckInfo}>
+                                    <Ionicons name={isResolved ? "checkmark-circle" : "warning"} size={16} color={mainColor} style={{marginRight: 6}} />
+                                    <Text style={[styles.plateNumber, {color: mainColor, fontWeight: 'bold'}]}>
+                                        {isResolved ? 'RESCUE COMPLETED' : 'EMERGENCY RESCUE'}
+                                    </Text>
+                                </View>
+                                <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
+                                    <Text style={[styles.statusText, { color: mainColor }]}>{assignment.status.toUpperCase()}</Text>
+                                </View>
+                            </View>
+                            <Text style={styles.issueTitle}>{assignment.issue_category}</Text>
+                            <Text style={styles.issueDescription} numberOfLines={2}>{assignment.description || 'No description provided'}</Text>
+                            <View style={styles.cardFooter}>
+                                <Text style={styles.createdAt}>{formatDate(assignment.created_at)}</Text>
+                                <Text style={[styles.priorityText, {color: mainColor, fontWeight: 'bold'}]}>VIEW MISSION</Text>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                }
+
+                return (
                 <TouchableOpacity
-                  key={assignment.id}
+                  key={`maint-${assignment.id}`}
                   style={styles.assignmentCard}
                   activeOpacity={0.7}
                   onLongPress={() => Alert.alert(
@@ -290,7 +342,7 @@ export default function MechanicAssignmentsScreen() {
                             `Title: ${assignment.issue_title}\nStart Date: ${formatDate(assignment.repair_date)}\nTime: ${assignment.repair_time}\nLocation: ${assignment.repair_location}\nStatus: ${getStatusText(assignment.status)}\nPriority: ${assignment.priority_level.toUpperCase()}`
                           )}
                         >
-                          <Ionicons name="information-circle-outline" size={24} color="#94A3B8" />
+                          <Ionicons name="information-circle-outline" size={24} color="#9AB7AF" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -335,13 +387,13 @@ export default function MechanicAssignmentsScreen() {
                     )}
                     {assignment.status === 'completed' && (
                       <View style={[styles.actionButton, styles.completedButton]}>
-                        <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                        <Ionicons name="checkmark-circle" size={16} color="#0F6B5A" />
                         <Text style={[styles.actionButtonText, styles.completedButtonText]}>Completed</Text>
                       </View>
                     )}
                   </View>
                 </TouchableOpacity>
-              ))}
+              );})}
             </View>
           )}
         </ScrollView>
@@ -353,7 +405,7 @@ export default function MechanicAssignmentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   safeArea: {
     flex: 1,
@@ -366,12 +418,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   refreshButton: {
     padding: 8,
@@ -379,7 +431,7 @@ const styles = StyleSheet.create({
   filterContainer: {
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
   },
   filterScrollContent: {
     paddingHorizontal: 16,
@@ -390,16 +442,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EEF4F1',
     marginRight: 8,
   },
   filterChipActive: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
   },
   filterChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#475569',
+    color: '#4F6C66',
   },
   filterChipTextActive: {
     color: '#FFFFFF',
@@ -417,7 +469,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '500',
   },
   emptyContainer: {
@@ -429,12 +481,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
     marginTop: 12,
   },
   emptyMessage: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#6F8B84',
     marginTop: 6,
     textAlign: 'center',
   },
@@ -447,7 +499,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
@@ -465,7 +517,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   uniqueIdBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EEF4F1',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -474,13 +526,13 @@ const styles = StyleSheet.create({
   uniqueIdText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     fontFamily: 'monospace',
   },
   plateNumber: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#475569',
+    color: '#4F6C66',
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -495,18 +547,18 @@ const styles = StyleSheet.create({
   issueTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 6,
   },
   issueDescription: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     lineHeight: 18,
     marginBottom: 12,
   },
   progressBarContainer: {
     height: 6,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EEF4F1',
     borderRadius: 3,
     marginBottom: 12,
     overflow: 'hidden',
@@ -516,12 +568,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   scheduleDetails: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   scheduleItem: {
     flexDirection: 'row',
@@ -530,7 +582,7 @@ const styles = StyleSheet.create({
   },
   scheduleText: {
     fontSize: 11,
-    color: '#475569',
+    color: '#4F6C66',
     marginLeft: 6,
     fontWeight: '500',
   },
@@ -556,7 +608,7 @@ const styles = StyleSheet.create({
   },
   createdAt: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#9AB7AF',
     fontWeight: '500',
   },
   actionButtons: {
@@ -572,16 +624,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   startButton: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: '#0F6B5A',
+    borderColor: '#0F6B5A',
   },
   completeButton: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    backgroundColor: '#2A9D8F',
+    borderColor: '#2A9D8F',
   },
   completedButton: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#EEF4F1',
+    borderColor: '#D8E7E1',
   },
   actionButtonText: {
     fontSize: 13,
@@ -590,6 +642,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   completedButtonText: {
-    color: '#10B981',
+    color: '#0F6B5A',
   },
 });

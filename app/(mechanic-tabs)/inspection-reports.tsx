@@ -197,7 +197,7 @@ export default function InspectionReportsScreen() {
   };
 
   const conditions = [
-    { value: 'good', label: 'Good', color: '#10B981' },
+    { value: 'good', label: 'Good', color: '#0F6B5A' },
     { value: 'fair', label: 'Fair', color: '#F59E0B' },
     { value: 'poor', label: 'Poor', color: '#F97316' },
     { value: 'critical', label: 'Critical', color: '#DC2626' },
@@ -205,7 +205,7 @@ export default function InspectionReportsScreen() {
 
   const getConditionColor = (condition: string) => {
     switch (condition) {
-      case 'good': return '#10B981';
+      case 'good': return '#0F6B5A';
       case 'fair': return '#F59E0B';
       case 'poor': return '#F97316';
       case 'critical': return '#DC2626';
@@ -216,8 +216,8 @@ export default function InspectionReportsScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return '#F59E0B';
-      case 'reviewed': return '#3B82F6';
-      case 'scheduled': return '#10B981';
+      case 'reviewed': return '#2A9D8F';
+      case 'scheduled': return '#0F6B5A';
       case 'completed': return '#6B7280';
       default: return '#6B7280';
     }
@@ -242,7 +242,7 @@ export default function InspectionReportsScreen() {
             <Ionicons 
               name="refresh" 
               size={20} 
-              color="#0F172A" 
+              color="#23423B" 
               style={refreshing ? { transform: [{ rotate: '180deg' }] } : {}}
             />
           </TouchableOpacity>
@@ -251,7 +251,7 @@ export default function InspectionReportsScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#10B981" />
+              <ActivityIndicator size="large" color="#0F6B5A" />
               <Text style={styles.loadingText}>Loading inspection reports...</Text>
             </View>
           ) : reports.length === 0 ? (
@@ -289,7 +289,7 @@ export default function InspectionReportsScreen() {
                   </View>
 
                   <View style={styles.dateRow}>
-                    <Ionicons name="calendar-outline" size={14} color="#64748B" />
+                    <Ionicons name="calendar-outline" size={14} color="#6F8B84" />
                     <Text style={styles.dateText}>
                       Inspection Date: {formatDate(report.inspection_date)}
                     </Text>
@@ -297,7 +297,7 @@ export default function InspectionReportsScreen() {
 
                   {report.mileage && (
                     <View style={styles.mileageRow}>
-                      <Ionicons name="speedometer-outline" size={14} color="#64748B" />
+                      <Ionicons name="speedometer-outline" size={14} color="#6F8B84" />
                       <Text style={styles.mileageText}>
                         Mileage: {report.mileage.toLocaleString()} km
                       </Text>
@@ -359,7 +359,7 @@ export default function InspectionReportsScreen() {
             >
               <View style={styles.modalHeader}>
                 <TouchableOpacity onPress={() => setShowFormModal(false)} style={styles.modalCloseButton}>
-                  <Ionicons name="close" size={24} color="#0F172A" />
+                  <Ionicons name="close" size={24} color="#23423B" />
                 </TouchableOpacity>
                 <Text style={styles.modalTitle}>New Inspection</Text>
                 <View style={styles.modalSpacer} />
@@ -490,7 +490,7 @@ export default function InspectionReportsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   safeArea: {
     flex: 1,
@@ -503,12 +503,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   refreshButton: {
     padding: 8,
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '500',
   },
   emptyContainer: {
@@ -539,12 +539,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
     marginTop: 12,
   },
   emptyMessage: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#6F8B84',
     marginTop: 6,
     textAlign: 'center',
   },
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   uniqueIdBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EEF4F1',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -584,13 +584,13 @@ const styles = StyleSheet.create({
   uniqueIdText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     fontFamily: 'monospace',
   },
   plateNumber: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#475569',
+    color: '#4F6C66',
   },
   conditionBadge: {
     paddingHorizontal: 10,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     marginLeft: 6,
     fontWeight: '500',
   },
@@ -620,13 +620,13 @@ const styles = StyleSheet.create({
   },
   mileageText: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     marginLeft: 6,
     fontWeight: '500',
   },
   findingsText: {
     fontSize: 13,
-    color: '#475569',
+    color: '#4F6C66',
     lineHeight: 18,
     marginBottom: 12,
   },
@@ -647,20 +647,20 @@ const styles = StyleSheet.create({
   },
   createdAt: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#9AB7AF',
     fontWeight: '500',
   },
   addButton: {
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
-    shadowColor: '#10B981',
+    shadowColor: '#0F6B5A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
   },
   modalSafeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   modalKeyboardView: {
     flex: 1,
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
   },
   modalCloseButton: {
     padding: 4,
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   modalSpacer: {
     width: 32,
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
   modalSectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 12,
   },
   truckList: {
@@ -723,16 +723,16 @@ const styles = StyleSheet.create({
     padding: 12,
     marginRight: 12,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     minWidth: 120,
   },
   truckCardSelected: {
-    borderColor: '#10B981',
+    borderColor: '#0F6B5A',
     backgroundColor: '#F0FDF4',
   },
   vehicleType: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#6F8B84',
   },
   input: {
     backgroundColor: '#FFFFFF',
@@ -740,9 +740,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     fontSize: 14,
-    color: '#0F172A',
+    color: '#23423B',
   },
   textArea: {
     height: 100,
@@ -758,7 +758,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     flexDirection: 'row',
     alignItems: 'center',
     minWidth: 80,
@@ -775,13 +775,13 @@ const styles = StyleSheet.create({
   conditionLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#6F8B84',
   },
   conditionLabelSelected: {
-    color: '#0F172A',
+    color: '#23423B',
   },
   submitButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

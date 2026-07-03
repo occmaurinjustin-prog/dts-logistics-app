@@ -68,8 +68,8 @@ export default function FaceAttendanceScreen() {
   if (isCheckingState) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#10B981" />
-        <Text style={{ color: '#10B981', marginTop: 16 }}>Checking attendance state...</Text>
+        <ActivityIndicator size="large" color="#0F6B5A" />
+        <Text style={{ color: '#0F6B5A', marginTop: 16 }}>Checking attendance state...</Text>
       </View>
     );
   }
@@ -255,9 +255,9 @@ export default function FaceAttendanceScreen() {
     // Show Full-Screen Success UI
     if (result && result.success) {
       return (
-        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#ECFDF5' }]}>
-          <Ionicons name="checkmark-circle" size={120} color="#10B981" />
-          <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#065F46', marginTop: 20 }}>Verified!</Text>
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#E3F2EB' }]}>
+          <Ionicons name="checkmark-circle" size={120} color="#0F6B5A" />
+          <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#0F6B5A', marginTop: 20 }}>Verified!</Text>
           <Text style={{ fontSize: 18, color: '#047857', marginTop: 10, textAlign: 'center', paddingHorizontal: 40 }}>
             {result.message}
           </Text>
@@ -272,7 +272,7 @@ export default function FaceAttendanceScreen() {
         
         {isProcessing && (
           <View style={styles.overlay}>
-            <ActivityIndicator size="large" color="#10B981" />
+            <ActivityIndicator size="large" color="#0F6B5A" />
             <Text style={styles.overlayText}>Verifying Face...</Text>
           </View>
         )}
@@ -303,15 +303,15 @@ export default function FaceAttendanceScreen() {
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
         {isComplete ? (
           <View style={{ alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)' }}>
-            <Ionicons name="checkmark-done-circle" size={100} color="#10B981" />
-            <Text style={{ color: '#10B981', fontSize: 28, fontWeight: 'bold', marginTop: 20, textAlign: 'center' }}>
+            <Ionicons name="checkmark-done-circle" size={100} color="#0F6B5A" />
+            <Text style={{ color: '#0F6B5A', fontSize: 28, fontWeight: 'bold', marginTop: 20, textAlign: 'center' }}>
               Shift Complete!
             </Text>
-            <Text style={{ color: '#94A3B8', fontSize: 16, marginTop: 10, textAlign: 'center', lineHeight: 24 }}>
+            <Text style={{ color: '#9AB7AF', fontSize: 16, marginTop: 10, textAlign: 'center', lineHeight: 24 }}>
               Great job today! You have successfully completed your shift. Face recognition is disabled until tomorrow.
             </Text>
             <TouchableOpacity 
-              style={{ backgroundColor: '#10B981', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 25, marginTop: 30 }}
+              style={{ backgroundColor: '#0F6B5A', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 25, marginTop: 30 }}
               onPress={() => router.back()}
             >
               <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Back to Dashboard</Text>
@@ -319,15 +319,15 @@ export default function FaceAttendanceScreen() {
           </View>
         ) : (
           <View style={{ alignItems: 'center', backgroundColor: 'rgba(100, 116, 139, 0.1)', padding: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(100, 116, 139, 0.3)' }}>
-            <Ionicons name="time" size={100} color="#94A3B8" />
+            <Ionicons name="time" size={100} color="#9AB7AF" />
             <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 20, textAlign: 'center' }}>
               Too Early
             </Text>
-            <Text style={{ color: '#94A3B8', fontSize: 16, marginTop: 10, textAlign: 'center', lineHeight: 24 }}>
+            <Text style={{ color: '#9AB7AF', fontSize: 16, marginTop: 10, textAlign: 'center', lineHeight: 24 }}>
               Face recognition will be available starting at 6:00 AM.
             </Text>
             <TouchableOpacity 
-              style={{ backgroundColor: '#334155', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 25, marginTop: 30 }}
+              style={{ backgroundColor: '#35645A', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 25, marginTop: 30 }}
               onPress={() => router.back()}
             >
               <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Back to Dashboard</Text>
@@ -369,7 +369,7 @@ export default function FaceAttendanceScreen() {
             disabled={!isCameraReady || isCaptureDisabled}
           >
             <View style={styles.captureInner}>
-              <View style={[styles.captureCore, isCaptureDisabled && { backgroundColor: '#94A3B8', borderColor: '#CBD5E1' }]} />
+              <View style={[styles.captureCore, isCaptureDisabled && { backgroundColor: '#9AB7AF', borderColor: '#C7DDD5' }]} />
             </View>
           </TouchableOpacity>
           <Text style={styles.captureLabel}>{isCaptureDisabled ? 'Disabled' : 'Capture to Verify'}</Text>
@@ -380,10 +380,10 @@ export default function FaceAttendanceScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: '#0F6B5A' },
   camera: { flex: 1 },
   message: { textAlign: 'center', paddingBottom: 10, color: 'white', fontSize: 16 },
-  button: { backgroundColor: '#10B981', padding: 14, borderRadius: 10, marginHorizontal: 30 },
+  button: { backgroundColor: '#0F6B5A', padding: 14, borderRadius: 10, marginHorizontal: 30 },
   buttonText: { color: 'white', textAlign: 'center', fontWeight: 'bold', fontSize: 16 },
   
   cameraOverlay: { 
@@ -405,13 +405,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   clockTime: {
-    color: '#10B981',
+    color: '#0F6B5A',
     fontSize: 32,
     fontWeight: '800',
     letterSpacing: 1,
   },
   clockDate: {
-    color: '#E2E8F0',
+    color: '#D8E7E1',
     fontSize: 14,
     fontWeight: '500',
     marginTop: 4,
@@ -430,13 +430,13 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   greetingText: {
-    color: '#E2E8F0',
+    color: '#D8E7E1',
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   instructionText: { 
-    color: '#10B981', 
+    color: '#0F6B5A', 
     fontSize: 16, 
     fontWeight: '700',
     textAlign: 'center'
@@ -480,9 +480,9 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#D8E7E1',
     borderWidth: 2,
-    borderColor: '#CBD5E1'
+    borderColor: '#C7DDD5'
   },
   captureLabel: {
     color: 'white',
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     zIndex: 10 
   },
-  overlayText: { color: '#10B981', marginTop: 16, fontSize: 18, fontWeight: 'bold' },
+  overlayText: { color: '#0F6B5A', marginTop: 16, fontSize: 18, fontWeight: 'bold' },
   
   resultContainer: { 
     position: 'absolute', 
@@ -539,8 +539,8 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 8,
   },
-  successResult: { backgroundColor: '#ECFDF5', borderColor: '#34D399', borderWidth: 2 },
+  successResult: { backgroundColor: '#E3F2EB', borderColor: '#34D399', borderWidth: 2 },
   errorResult: { backgroundColor: '#FEF2F2', borderColor: '#F87171', borderWidth: 2 },
   resultTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
-  resultText: { fontSize: 15, fontWeight: '500', color: '#334155' },
+  resultText: { fontSize: 15, fontWeight: '500', color: '#35645A' },
 });

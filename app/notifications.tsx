@@ -146,7 +146,7 @@ export default function NotificationsScreen() {
       case 'maintenance':
         return '#22C55E';
       case 'schedule':
-        return '#3B82F6';
+        return '#2A9D8F';
       case 'urgent':
         return '#EF4444';
       default:
@@ -203,7 +203,7 @@ export default function NotificationsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={22} color="#0F172A" />
+            <Ionicons name="arrow-back" size={22} color="#23423B" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>Notifications</Text>
@@ -217,7 +217,7 @@ export default function NotificationsScreen() {
             <Ionicons 
               name="refresh" 
               size={20} 
-              color="#0F172A" 
+              color="#23423B" 
               style={refreshing ? { transform: [{ rotate: '180deg' }] } : {}}
             />
           </TouchableOpacity>
@@ -226,7 +226,7 @@ export default function NotificationsScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#10B981" />
+              <ActivityIndicator size="large" color="#0F6B5A" />
               <Text style={styles.loadingText}>Loading notifications...</Text>
             </View>
           ) : notifications.length === 0 ? (
@@ -339,7 +339,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   safeArea: {
     flex: 1,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#D8E7E1',
   },
   backButton: {
     padding: 4,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
     textAlign: 'center',
   },
   badge: {
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 12,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '500',
   },
   emptyContainer: {
@@ -412,12 +412,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
     marginTop: 12,
   },
   emptyMessage: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#6F8B84',
     marginTop: 6,
     textAlign: 'center',
   },
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
@@ -438,9 +438,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   unreadCard: {
-    borderColor: '#10B981',
+    borderColor: '#0F6B5A',
     borderWidth: 1.5,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E3F2EB',
   },
   notificationHeader: {
     flexDirection: 'row',
@@ -466,22 +466,22 @@ const styles = StyleSheet.create({
   notificationTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 4,
   },
   notificationMessage: {
     fontSize: 12,
-    color: '#475569',
+    color: '#4F6C66',
     lineHeight: 18,
     marginBottom: 8,
   },
   scheduleDetails: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
     borderRadius: 10,
     padding: 10,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   scheduleItem: {
     flexDirection: 'row',
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
   },
   scheduleText: {
     fontSize: 11,
-    color: '#475569',
+    color: '#4F6C66',
     marginLeft: 6,
     fontWeight: '500',
   },
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
   },
   notificationTime: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#9AB7AF',
     fontWeight: '500',
   },
   priorityBadge: {
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
     marginBottom: 8,
   },
   deleteButton: {

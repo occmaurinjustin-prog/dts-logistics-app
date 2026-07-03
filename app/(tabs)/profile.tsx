@@ -141,6 +141,12 @@ export default function ProfileScreen() {
                     router.push('/notifications');
                   } },
     { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => {} },
+    { icon: 'alert-circle-outline', label: 'Emergency Rescue', onPress: () => {
+        router.push('/rescue-request');
+    } },
+    { icon: 'time-outline', label: 'Rescue History', onPress: () => {
+        router.push('/rescue-history');
+    } },
     { icon: 'lock-closed-outline', label: 'Change Password', onPress: () => {
         router.push('/change-password');
     } },
@@ -254,7 +260,7 @@ export default function ProfileScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Modern Profile Header with Gradient */}
           <LinearGradient
-            colors={['#0F172A', '#1E293B']}
+            colors={['#23423B', '#1E293B']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.modernHeader}
@@ -263,14 +269,14 @@ export default function ProfileScreen() {
               <TouchableOpacity onPress={pickImage} style={styles.profileImageContainer} disabled={isUploading}>
                 <View style={styles.profileImage}>
                   {isUploading ? (
-                    <ActivityIndicator size="small" color="#10B981" />
+                    <ActivityIndicator size="small" color="#0F6B5A" />
                   ) : userData?.profile_image ? (
                     <Image 
                       source={{ uri: userData.profile_image.startsWith('http') ? userData.profile_image : `http://10.65.49.24:8000/storage/${userData.profile_image}` }} 
                       style={styles.avatarImage} 
                     />
                   ) : (
-                    <Ionicons name="person" size={32} color="#10B981" />
+                    <Ionicons name="person" size={32} color="#0F6B5A" />
                   )}
                   <View style={styles.editBadge}>
                     <Ionicons name="camera" size={12} color="#FFFFFF" />
@@ -290,7 +296,7 @@ export default function ProfileScreen() {
                 )}
                 
                 <View style={styles.driverBadge}>
-                  <Ionicons name="shield-checkmark" size={10} color="#10B981" />
+                  <Ionicons name="shield-checkmark" size={10} color="#0F6B5A" />
                   <Text style={styles.driverBadgeText}>Verified Driver</Text>
                 </View>
               </View>
@@ -310,7 +316,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.menuItemLeft}>
                   <View style={styles.menuIcon}>
-                    <Ionicons name={item.icon as any} size={18} color="#0F172A" />
+                    <Ionicons name={item.icon as any} size={18} color="#23423B" />
                   </View>
                   <View style={styles.menuItemContent}>
                     <Text style={styles.menuItemText}>{item.label}</Text>
@@ -335,9 +341,15 @@ export default function ProfileScreen() {
                     {item.label === 'Edit Profile' && (
                       <Text style={styles.menuItemSubtitle}>Update personal info</Text>
                     )}
+                    {item.label === 'Emergency Rescue' && (
+                      <Text style={styles.menuItemSubtitle}>Request roadside assistance</Text>
+                    )}
+                    {item.label === 'Rescue History' && (
+                      <Text style={styles.menuItemSubtitle}>View past emergencies</Text>
+                    )}
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={14} color="#94A3B8" />
+                <Ionicons name="chevron-forward" size={14} color="#9AB7AF" />
               </TouchableOpacity>
             ))}
           </View>
@@ -359,7 +371,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#DDE9E3',
   },
   safeArea: {
     flex: 1,
@@ -414,7 +426,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: '#10B981',
+    backgroundColor: '#0F6B5A',
     width: 22,
     height: 22,
     borderRadius: 11,
@@ -442,7 +454,7 @@ const styles = StyleSheet.create({
   },
   driverEmail: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#9AB7AF',
     marginTop: 2,
     fontWeight: '500',
   },
@@ -477,7 +489,7 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
@@ -495,11 +507,11 @@ const styles = StyleSheet.create({
   statVal: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
   },
   statLabel: {
     fontSize: 10,
-    color: '#64748B',
+    color: '#6F8B84',
     fontWeight: '600',
     marginTop: 1,
   },
@@ -511,7 +523,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#23423B',
     marginBottom: 12,
   },
   menuItem: {
@@ -524,7 +536,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D8E7E1',
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -535,7 +547,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EEF4F1',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -546,11 +558,11 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#23423B',
   },
   menuItemSubtitle: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#6F8B84',
     marginTop: 2,
     fontWeight: '500',
   },
@@ -573,7 +585,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#9AB7AF',
     textAlign: 'center',
     fontWeight: '500',
     marginBottom: 32,
