@@ -119,7 +119,7 @@ export default function RescueRequestScreen() {
     if (loading) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#0F6B5A" />
+                <ActivityIndicator size="large" color="#10B981" />
             </View>
         );
     }
@@ -130,7 +130,7 @@ export default function RescueRequestScreen() {
                 <Stack.Screen options={{ headerShown: false }} />
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#23423B" />
+                        <Ionicons name="arrow-back" size={24} color="#0F172A" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Active Rescue</Text>
                 </View>
@@ -161,7 +161,7 @@ export default function RescueRequestScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#23423B" />
+                    <Ionicons name="arrow-back" size={24} color="#0F172A" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Request Rescue</Text>
             </View>
@@ -196,14 +196,14 @@ export default function RescueRequestScreen() {
                         <Image source={{ uri: media }} style={styles.mediaPreview} />
                     ) : (
                         <View style={styles.mediaPlaceholder}>
-                            <Ionicons name="camera" size={32} color="#9AB7AF" />
+                            <Ionicons name="camera" size={32} color="#94A3B8" />
                             <Text style={styles.mediaPlaceholderText}>Tap to add photo</Text>
                         </View>
                     )}
                 </TouchableOpacity>
                 
                 <View style={styles.locationBox}>
-                    <Ionicons name="location" size={20} color="#0F6B5A" />
+                    <Ionicons name="location" size={20} color="#10B981" />
                     <Text style={styles.locationText}>
                         {location ? 'Your current GPS location will be sent.' : 'Acquiring GPS location...'}
                     </Text>
@@ -227,23 +227,23 @@ export default function RescueRequestScreen() {
 
 const styles = StyleSheet.create({
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    container: { flex: 1, backgroundColor: '#DDE9E3' },
-    header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 50, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#D8E7E1' },
+    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 50, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
     backButton: { marginRight: 16 },
-    headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#23423B' },
+    headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#0F172A' },
     content: { padding: 20 },
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#35645A', marginBottom: 12, marginTop: 16 },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#334155', marginBottom: 12, marginTop: 16 },
     categories: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    categoryBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D8E7E1' },
-    categoryBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#2A9D8F' },
-    categoryText: { color: '#6F8B84', fontWeight: '600' },
+    categoryBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0' },
+    categoryBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#3B82F6' },
+    categoryText: { color: '#64748B', fontWeight: '600' },
     categoryTextActive: { color: '#2563EB', fontWeight: 'bold' },
-    input: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#D8E7E1', height: 100, textAlignVertical: 'top' },
-    mediaBtn: { height: 150, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D8E7E1', borderStyle: 'dashed', overflow: 'hidden' },
+    input: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#E2E8F0', height: 100, textAlignVertical: 'top' },
+    mediaBtn: { height: 150, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', borderStyle: 'dashed', overflow: 'hidden' },
     mediaPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    mediaPlaceholderText: { color: '#9AB7AF', marginTop: 8 },
+    mediaPlaceholderText: { color: '#94A3B8', marginTop: 8 },
     mediaPreview: { width: '100%', height: '100%', borderRadius: 12 },
-    locationBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2EB', padding: 12, borderRadius: 12, marginTop: 20 },
+    locationBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ECFDF5', padding: 12, borderRadius: 12, marginTop: 20 },
     locationText: { color: '#059669', marginLeft: 8, fontWeight: '500', fontSize: 13 },
     submitBtn: { backgroundColor: '#EF4444', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 30, marginBottom: 40 },
     submitBtnDisabled: { opacity: 0.7 },
@@ -251,12 +251,12 @@ const styles = StyleSheet.create({
     
     // Status Card Styles
     statusCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-    statusTitle: { fontSize: 24, fontWeight: 'bold', color: '#23423B', marginTop: 16, marginBottom: 8 },
-    statusText: { fontSize: 16, color: '#6F8B84', marginBottom: 4 },
+    statusTitle: { fontSize: 24, fontWeight: 'bold', color: '#0F172A', marginTop: 16, marginBottom: 8 },
+    statusText: { fontSize: 16, color: '#64748B', marginBottom: 4 },
     statusHighlight: { color: '#F59E0B', fontWeight: 'bold' },
-    detailText: { fontSize: 14, color: '#35645A', marginTop: 8 },
+    detailText: { fontSize: 14, color: '#334155', marginTop: 8 },
     mechanicBox: { backgroundColor: '#EFF6FF', padding: 16, borderRadius: 12, marginTop: 20, width: '100%', alignItems: 'center' },
-    mechanicLabel: { fontSize: 12, color: '#6F8B84', textTransform: 'uppercase', fontWeight: 'bold' },
+    mechanicLabel: { fontSize: 12, color: '#64748B', textTransform: 'uppercase', fontWeight: 'bold' },
     mechanicName: { fontSize: 18, color: '#1E40AF', fontWeight: 'bold', marginTop: 4 },
-    infoText: { fontSize: 12, color: '#9AB7AF', textAlign: 'center', marginTop: 24 },
+    infoText: { fontSize: 12, color: '#94A3B8', textAlign: 'center', marginTop: 24 },
 });

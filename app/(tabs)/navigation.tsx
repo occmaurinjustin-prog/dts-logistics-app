@@ -930,7 +930,7 @@ export default function NavigationScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2A9D8F" />
+          <ActivityIndicator size="large" color="#3B82F6" />
           <Text style={styles.loadingText}>Loading navigation...</Text>
         </View>
       </SafeAreaView>
@@ -1017,7 +1017,7 @@ export default function NavigationScreen() {
       distance: '',
       street: currentStop?.address?.split(',')[0] || 'Select a destination',
       icon: 'navigate' as const,
-      color: '#2A9D8F',
+      color: '#3B82F6',
     };
   };
 
@@ -1080,7 +1080,7 @@ export default function NavigationScreen() {
             )}
           </View>
           <View style={styles.navArrow}>
-            <Ionicons name="chevron-forward" size={24} color="#9AB7AF" />
+            <Ionicons name="chevron-forward" size={24} color="#94A3B8" />
           </View>
         </View>
 
@@ -1177,8 +1177,8 @@ export default function NavigationScreen() {
           <View style={{ marginBottom: 12 }}>
             {distanceToDestination !== null && (
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8, gap: 6 }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasArrived ? '#0F6B5A' : '#EF4444' }} />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: hasArrived ? '#0F6B5A' : '#EF4444' }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasArrived ? '#10B981' : '#EF4444' }} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: hasArrived ? '#10B981' : '#EF4444' }}>
                   {hasArrived ? 'Arrived at Destination' : `Not Arrived - ${Math.round(distanceToDestination)}m remaining`}
                 </Text>
               </View>
@@ -1187,7 +1187,7 @@ export default function NavigationScreen() {
               <TouchableOpacity
                 style={[
                   styles.completeNavButton,
-                  !hasArrived && { backgroundColor: '#9AB7AF' }
+                  !hasArrived && { backgroundColor: '#94A3B8' }
                 ]}
                 onPress={handleCompleteStep}
                 disabled={!hasArrived}
@@ -1205,7 +1205,7 @@ export default function NavigationScreen() {
         {/* Delivery Info Card */}
         <View style={styles.deliveryInfoCard}>
           <View style={styles.deliveryInfoRow}>
-            <Ionicons name={currentStop?.type === 'pickup' ? 'cube' : 'home'} size={20} color="#6F8B84" />
+            <Ionicons name={currentStop?.type === 'pickup' ? 'cube' : 'home'} size={20} color="#64748B" />
             <View style={styles.deliveryInfoContent}>
               <Text style={styles.deliveryInfoLabel}>
                 {currentStop?.type === 'pickup' ? 'Pickup from' : 'Deliver to'}
@@ -1217,7 +1217,7 @@ export default function NavigationScreen() {
           </View>
           <View style={styles.deliveryDivider} />
           <View style={styles.deliveryInfoRow}>
-            <Ionicons name="location" size={20} color="#6F8B84" />
+            <Ionicons name="location" size={20} color="#64748B" />
             <View style={styles.deliveryInfoContent}>
               <Text style={styles.deliveryInfoLabel}>Address</Text>
               <Text style={styles.deliveryInfoValue} numberOfLines={2}>
@@ -1256,7 +1256,7 @@ export default function NavigationScreen() {
                 disabled={isUploading}
                 style={styles.modalCloseButton}
               >
-                <Ionicons name="close" size={22} color="#6F8B84" />
+                <Ionicons name="close" size={22} color="#64748B" />
               </TouchableOpacity>
             </View>
 
@@ -1301,7 +1301,7 @@ export default function NavigationScreen() {
                     activeOpacity={0.7}
                   >
                     <View style={[styles.selectorIconBg, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
-                      <Ionicons name="images" size={28} color="#2A9D8F" />
+                      <Ionicons name="images" size={28} color="#3B82F6" />
                     </View>
                     <Text style={styles.selectorText}>From Gallery</Text>
                   </TouchableOpacity>
@@ -1313,7 +1313,7 @@ export default function NavigationScreen() {
               <TextInput
                 style={styles.remarksInput}
                 placeholder="e.g. Received by John Doe, packages in excellent condition..."
-                placeholderTextColor="#9AB7AF"
+                placeholderTextColor="#94A3B8"
                 multiline={true}
                 numberOfLines={3}
                 value={podRemarks}
@@ -1327,7 +1327,7 @@ export default function NavigationScreen() {
                   <Ionicons
                     name={location ? "location" : "location-outline"}
                     size={14}
-                    color={location ? "#16A34A" : "#9AB7AF"}
+                    color={location ? "#16A34A" : "#94A3B8"}
                   />
                   <Text style={[styles.infoBadgeText, location && { color: '#16A34A', fontWeight: '600' }]}>
                     {location
@@ -1338,7 +1338,7 @@ export default function NavigationScreen() {
                 </View>
 
                 <View style={styles.infoBadge}>
-                  <Ionicons name="time-outline" size={14} color="#2A9D8F" />
+                  <Ionicons name="time-outline" size={14} color="#3B82F6" />
                   <Text style={styles.infoBadgeText}>
                     {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (Auto)
                   </Text>
@@ -1386,7 +1386,7 @@ export default function NavigationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
   },
 
   // Loading State
@@ -1394,12 +1394,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
   },
 
@@ -1433,7 +1433,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   emptyPulseRing: {
     position: 'absolute',
@@ -1441,18 +1441,18 @@ const styles = StyleSheet.create({
     height: 112,
     borderRadius: 56,
     borderWidth: 1.5,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     backgroundColor: 'transparent',
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 13,
-    color: '#6F8B84',
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -1462,13 +1462,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   emptyStatItem: {
     flexDirection: 'row',
@@ -1478,19 +1478,19 @@ const styles = StyleSheet.create({
   emptyStatText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6F8B84',
+    color: '#64748B',
   },
   emptyStatDivider: {
     width: 1,
     height: 16,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
     marginHorizontal: 12,
   },
   emptyActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
@@ -1512,7 +1512,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#D8E7E1',
+    borderBottomColor: '#E2E8F0',
   },
   headerBackButton: {
     padding: 4,
@@ -1524,11 +1524,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   headerEta: {
     fontSize: 11,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
     marginTop: 2,
   },
@@ -1536,7 +1536,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1564,7 +1564,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   navIconContainer: {
     width: 40,
@@ -1586,12 +1586,12 @@ const styles = StyleSheet.create({
   navInstruction: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 2,
   },
   navStreet: {
     fontSize: 11,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -1599,7 +1599,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#E3F2EB',
+    backgroundColor: '#ECFDF5',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
@@ -1608,7 +1608,7 @@ const styles = StyleSheet.create({
   navDistanceText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#0F6B5A',
+    color: '#10B981',
   },
   navArrow: {
     marginLeft: 2,
@@ -1622,10 +1622,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#0F6B5A',
+    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -1655,7 +1655,7 @@ const styles = StyleSheet.create({
   dragHandle: {
     width: 32,
     height: 4,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
     borderRadius: 2,
   },
 
@@ -1665,14 +1665,14 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     height: 4,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     borderRadius: 2,
     overflow: 'hidden',
     marginBottom: 10,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     borderRadius: 2,
   },
   progressLabels: {
@@ -1687,20 +1687,20 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   progressDotActive: {
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
   },
   progressLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#9AB7AF',
+    color: '#94A3B8',
   },
   progressLabelActive: {
-    color: '#23423B',
+    color: '#0F172A',
     fontWeight: '800',
   },
 
@@ -1708,7 +1708,7 @@ const styles = StyleSheet.create({
   startNavButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     padding: 6,
     marginBottom: 12,
@@ -1732,7 +1732,7 @@ const styles = StyleSheet.create({
   },
   startNavSubtitle: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     marginTop: 1,
   },
 
@@ -1747,7 +1747,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     paddingVertical: 14,
     borderRadius: 10,
   },
@@ -1759,11 +1759,11 @@ const styles = StyleSheet.create({
 
   // Delivery Info Card
   deliveryInfoCard: {
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   deliveryInfoRow: {
     flexDirection: 'row',
@@ -1776,7 +1776,7 @@ const styles = StyleSheet.create({
   deliveryInfoLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#9AB7AF',
+    color: '#94A3B8',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 2,
@@ -1784,12 +1784,12 @@ const styles = StyleSheet.create({
   deliveryInfoValue: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#23423B',
+    color: '#0F172A',
     lineHeight: 18,
   },
   deliveryDivider: {
     height: 1,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
     marginVertical: 10,
   },
 
@@ -1817,7 +1817,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
     alignSelf: 'center',
     marginBottom: 16,
   },
@@ -1830,11 +1830,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   modalSubtitle: {
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -1842,7 +1842,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1852,21 +1852,21 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#35645A',
+    color: '#334155',
     marginBottom: 8,
     marginTop: 4,
   },
   optionalLabel: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     fontWeight: '500',
   },
   imageSelectorContainer: {
     flexDirection: 'row',
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     borderStyle: 'dashed',
     paddingVertical: 24,
     paddingHorizontal: 12,
@@ -1890,19 +1890,19 @@ const styles = StyleSheet.create({
   selectorText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#4F6C66',
+    color: '#475569',
   },
   selectorDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
   },
   previewImageContainer: {
     position: 'relative',
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     marginBottom: 16,
   },
   previewImage: {
@@ -1922,14 +1922,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   remarksInput: {
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 13,
-    color: '#23423B',
+    color: '#0F172A',
     minHeight: 80,
     textAlignVertical: 'top',
     marginBottom: 16,
@@ -1943,7 +1943,7 @@ const styles = StyleSheet.create({
   infoBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     borderRadius: 20,
     paddingVertical: 4,
     paddingHorizontal: 10,
@@ -1952,7 +1952,7 @@ const styles = StyleSheet.create({
   infoBadgeText: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#6F8B84',
+    color: '#64748B',
   },
   modalActionButtonsRow: {
     flexDirection: 'row',
@@ -1961,7 +1961,7 @@ const styles = StyleSheet.create({
   },
   modalCancelButton: {
     flex: 1,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1970,12 +1970,12 @@ const styles = StyleSheet.create({
   modalCancelButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#4F6C66',
+    color: '#475569',
   },
   modalSubmitButton: {
     flex: 2,
     flexDirection: 'row',
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1983,7 +1983,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   modalSubmitButtonDisabled: {
-    backgroundColor: '#9AB7AF',
+    backgroundColor: '#94A3B8',
   },
   modalSubmitButtonText: {
     fontSize: 14,

@@ -77,7 +77,7 @@ export default function MechanicTabLayout() {
       <Tabs.Screen
         name="inspection-reports"
         options={{
-          title: 'Inspection',
+          title: 'Reports',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconWrapper, focused && styles.activeIconWrapper]}>
               <Ionicons name={focused ? 'search' : 'search-outline'} size={22} color={focused ? '#0F6B5A' : color} />

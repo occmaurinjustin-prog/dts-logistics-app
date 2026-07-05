@@ -147,6 +147,11 @@ export default function InspectionReportsScreen() {
       return;
     }
 
+    if (overallCondition !== 'good' && (!issueTitle.trim() || !issueDescription.trim())) {
+      Alert.alert('Error', `Please provide an issue title and description for a '${overallCondition}' condition.`);
+      return;
+    }
+
     setFormLoading(true);
 
     try {
@@ -163,8 +168,8 @@ export default function InspectionReportsScreen() {
           inspection_date: inspectionDate,
           overall_condition: overallCondition,
           mileage: mileage ? parseFloat(mileage) : null,
-          issue_title: issueTitle,
-          issue_description: issueDescription,
+          issue_title: overallCondition === 'good' ? '' : issueTitle.trim(),
+          issue_description: overallCondition === 'good' ? '' : issueDescription.trim(),
         }),
       });
 
@@ -441,30 +446,33 @@ export default function InspectionReportsScreen() {
                   />
                 </View>
 
-                {/* Issue Title */}
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalSectionTitle}>Issue Title</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={issueTitle}
-                    onChangeText={setIssueTitle}
-                    placeholder="Short title for the issue..."
-                  />
-                </View>
+                {/* Conditional Issue Fields */}
+                {overallCondition !== 'good' && (
+                  <>
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>Issue Title <Text style={{color: '#EF4444'}}>*</Text></Text>
+                      <TextInput
+                        style={styles.input}
+                        value={issueTitle}
+                        onChangeText={setIssueTitle}
+                        placeholder="Short title for the issue..."
+                      />
+                    </View>
 
-                {/* Issue Description */}
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalSectionTitle}>Issue Description</Text>
-                  <TextInput
-                    style={[styles.input, styles.textArea]}
-                    value={issueDescription}
-                    onChangeText={setIssueDescription}
-                    placeholder="Provide a detailed description of the issue..."
-                    multiline
-                    numberOfLines={4}
-                    textAlignVertical="top"
-                  />
-                </View>
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>Issue Description <Text style={{color: '#EF4444'}}>*</Text></Text>
+                      <TextInput
+                        style={[styles.input, styles.textArea]}
+                        value={issueDescription}
+                        onChangeText={setIssueDescription}
+                        placeholder="Provide a detailed description of the issue..."
+                        multiline
+                        numberOfLines={4}
+                        textAlignVertical="top"
+                      />
+                    </View>
+                  </>
+                )}
 
                 {/* Submit Button */}
                 <TouchableOpacity
@@ -652,7 +660,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 90,
     right: 20,
     backgroundColor: '#0F6B5A',
     flexDirection: 'row',

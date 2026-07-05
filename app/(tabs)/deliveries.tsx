@@ -292,7 +292,7 @@ export default function DeliveriesScreen() {
     if (selectedTab !== 'completed' || !isFetchingNextPage) return null;
     return (
       <View style={{ paddingVertical: 20 }}>
-        <ActivityIndicator size="small" color="#0F6B5A" />
+        <ActivityIndicator size="small" color="#10B981" />
       </View>
     );
   };
@@ -420,10 +420,10 @@ export default function DeliveriesScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Approved': return '#2D8C73';
-      case 'Delivered': return '#0F6B5A';
+      case 'Approved': return '#6366F1';
+      case 'Delivered': return '#10B981';
       case 'Pending': return '#F59E0B';
-      case 'In Progress': return '#2A9D8F';
+      case 'In Progress': return '#3B82F6';
       default: return '#6B7280';
     }
   };
@@ -443,14 +443,14 @@ export default function DeliveriesScreen() {
   const renderDeliveryCard = (delivery: any, index: number) => (
     <View key={index} style={styles.deliveryCard}>
       <View style={styles.deliveryHeader}>
-        <View style={[styles.deliveryIcon, { backgroundColor: '#E3F2EB' }]}>
-          <Ionicons name="cube" size={18} color="#0F6B5A" />
+        <View style={[styles.deliveryIcon, { backgroundColor: '#ECFDF5' }]}>
+          <Ionicons name="cube" size={18} color="#10B981" />
         </View>
         <View style={styles.deliveryInfo}>
           <Text style={styles.deliveryId}>Waybill #{delivery.waybill}</Text>
           <Text style={[styles.deliveryStatus, { 
             color: delivery.status === 'In Transit' || delivery.status === 'In Progress' ? '#EF4444' : 
-                   delivery.status === 'Delivered' ? '#0F6B5A' : '#2A9D8F' 
+                   delivery.status === 'Delivered' ? '#10B981' : '#3B82F6' 
           }]}>
             {delivery.status}
           </Text>
@@ -458,23 +458,23 @@ export default function DeliveriesScreen() {
       </View>
       <View style={styles.deliveryDetails}>
         <View style={styles.detailRow}>
-          <Ionicons name="person-outline" size={14} color="#6F8B84" />
+          <Ionicons name="person-outline" size={14} color="#64748B" />
           <Text style={styles.detailText}>{delivery.customer}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Ionicons name="location-outline" size={14} color="#6F8B84" />
+          <Ionicons name="location-outline" size={14} color="#64748B" />
           <Text style={styles.detailText} numberOfLines={1}>{delivery.address}</Text>
         </View>
         {delivery.eta && (
           <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={14} color="#6F8B84" />
+            <Ionicons name="time-outline" size={14} color="#64748B" />
             <Text style={styles.detailText}>ETA: {delivery.eta}</Text>
           </View>
         )}
         {delivery.completedAt && (
           <View style={styles.detailRow}>
-            <Ionicons name="checkmark-circle-outline" size={14} color="#0F6B5A" />
-            <Text style={[styles.detailText, { color: '#0F6B5A' }]}>Completed at {delivery.completedAt}</Text>
+            <Ionicons name="checkmark-circle-outline" size={14} color="#10B981" />
+            <Text style={[styles.detailText, { color: '#10B981' }]}>Completed at {delivery.completedAt}</Text>
           </View>
         )}
       </View>
@@ -513,8 +513,8 @@ export default function DeliveriesScreen() {
       
       {/* Show status badge on card for delivered items */}
       {delivery.status === 'Delivered' && (
-        <View style={[styles.cardStatusBadge, { backgroundColor: '#BFE8D8' }]}>
-          <Text style={[styles.cardStatusText, { color: '#0F6B5A' }]}>Completed</Text>
+        <View style={[styles.cardStatusBadge, { backgroundColor: '#D1FAE5' }]}>
+          <Text style={[styles.cardStatusText, { color: '#10B981' }]}>Completed</Text>
         </View>
       )}
     </View>
@@ -549,7 +549,7 @@ export default function DeliveriesScreen() {
 
         {loading && deliveries.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#0F6B5A" />
+            <ActivityIndicator size="large" color="#10B981" />
             <Text style={styles.loadingText}>Synchronizing shipments...</Text>
           </View>
         ) : isAuthenticated === false ? (
@@ -559,8 +559,8 @@ export default function DeliveriesScreen() {
             contentContainerStyle={styles.notLoggedInContainer}
           >
             <View style={styles.emptyContainer}>
-              <Ionicons name="lock-closed-outline" size={60} color="#9AB7AF" />
-              <Text style={[styles.emptyTitle, { color: '#23423B' }]}>Not Logged In</Text>
+              <Ionicons name="lock-closed-outline" size={60} color="#94A3B8" />
+              <Text style={[styles.emptyTitle, { color: '#0F172A' }]}>Not Logged In</Text>
               <Text style={styles.emptyText}>Please login to view your assigned deliveries</Text>
               <TouchableOpacity 
                 style={styles.loginButton}
@@ -577,7 +577,7 @@ export default function DeliveriesScreen() {
                 <Text style={styles.loginButtonText}>Clear & Re-login</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.loginButton, { backgroundColor: '#6F8B84', marginTop: 10 }]}
+                style={[styles.loginButton, { backgroundColor: '#64748B', marginTop: 10 }]}
                 onPress={async () => {
                   await authService.debugStorage();
                   const token = await AsyncStorage.getItem('authToken');
@@ -603,7 +603,7 @@ export default function DeliveriesScreen() {
             onEndReachedThreshold={0.5}
             ListFooterComponent={renderFooter}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F6B5A" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />
             }
             ListHeaderComponent={
               <View style={styles.updateIndicator}>
@@ -616,7 +616,7 @@ export default function DeliveriesScreen() {
                 <Ionicons 
                   name={selectedTab === 'active' ? "cube-outline" : "checkmark-circle-outline"} 
                   size={60} 
-                  color="#9AB7AF" 
+                  color="#94A3B8" 
                 />
                 <Text style={styles.emptyTitle}>
                   {selectedTab === 'active' ? "No Active Deliveries" : "No Completed Deliveries"}
@@ -638,8 +638,8 @@ export default function DeliveriesScreen() {
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderLeft}>
-                <View style={[styles.modalIcon, { backgroundColor: '#E3F2EB' }]}>
-                  <Ionicons name="cube" size={20} color="#0F6B5A" />
+                <View style={[styles.modalIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Ionicons name="cube" size={20} color="#10B981" />
                 </View>
                 <View>
                   <Text style={styles.modalTitle}>Waybill #{selectedDelivery?.waybill}</Text>
@@ -649,17 +649,17 @@ export default function DeliveriesScreen() {
               <View style={styles.modalHeaderRight}>
                 {selectedDelivery?.status && (
                   <View style={[styles.statusBadge, { 
-                    backgroundColor: selectedDelivery.status === 'Delivered' ? '#BFE8D8' : '#EFF6FF'
+                    backgroundColor: selectedDelivery.status === 'Delivered' ? '#D1FAE5' : '#EFF6FF'
                   }]}>
                     <Text style={[styles.statusBadgeText, { 
-                      color: selectedDelivery.status === 'Delivered' ? '#0F6B5A' : '#2563EB' 
+                      color: selectedDelivery.status === 'Delivered' ? '#10B981' : '#2563EB' 
                     }]}>
                       {selectedDelivery.status}
                     </Text>
                   </View>
                 )}
                 <TouchableOpacity onPress={closeDetailModal} style={styles.closeButton}>
-                  <Ionicons name="close-outline" size={20} color="#6F8B84" />
+                  <Ionicons name="close-outline" size={20} color="#64748B" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -683,7 +683,7 @@ export default function DeliveriesScreen() {
                   <Text style={styles.infoLabel}>Priority Level</Text>
                   <Text style={[styles.infoValue, { 
                     color: selectedDelivery?.priority === 'HIGH' ? '#EF4444' : 
-                           selectedDelivery?.priority === 'MEDIUM' ? '#F59E0B' : '#0F6B5A'
+                           selectedDelivery?.priority === 'MEDIUM' ? '#F59E0B' : '#10B981'
                   }]}>
                     {selectedDelivery?.priority}
                   </Text>
@@ -694,19 +694,19 @@ export default function DeliveriesScreen() {
               <View style={styles.addressSection}>
                 <View style={styles.addressCard}>
                   <View style={styles.addressHeader}>
-                    <Ionicons name="location-outline" size={16} color="#2D8C73" />
+                    <Ionicons name="location-outline" size={16} color="#6366F1" />
                     <Text style={styles.addressLabel}>Pickup Location</Text>
                   </View>
                   <Text style={styles.addressText}>{selectedDelivery?.pickup_address}</Text>
                 </View>
 
                 <View style={styles.addressArrow}>
-                  <Ionicons name="arrow-down-outline" size={18} color="#9AB7AF" />
+                  <Ionicons name="arrow-down-outline" size={18} color="#94A3B8" />
                 </View>
 
                 <View style={styles.addressCard}>
                   <View style={styles.addressHeader}>
-                    <Ionicons name="navigate-outline" size={16} color="#0F6B5A" />
+                    <Ionicons name="navigate-outline" size={16} color="#10B981" />
                     <Text style={styles.addressLabel}>Delivery Address</Text>
                   </View>
                   <Text style={styles.addressText}>{selectedDelivery?.address}</Text>
@@ -778,7 +778,7 @@ export default function DeliveriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
@@ -788,20 +788,20 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#D8E7E1',
+    borderBottomColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
   },
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#D8E7E1',
+    borderBottomColor: '#E2E8F0',
   },
   tab: {
     flex: 1,
@@ -811,15 +811,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#0F6B5A',
+    borderBottomColor: '#10B981',
   },
   tabText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#6F8B84',
+    color: '#64748B',
   },
   activeTabText: {
-    color: '#0F6B5A',
+    color: '#10B981',
   },
   scrollView: {
     flex: 1,
@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -858,7 +858,7 @@ const styles = StyleSheet.create({
   deliveryId: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   deliveryStatus: {
     fontSize: 11,
@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   startButton: {
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -912,11 +912,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     borderWidth: 1,
   },
   actionButtonText: {
-    color: '#23423B',
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -927,7 +927,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     width: '100%',
@@ -940,7 +940,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#D8E7E1',
+    borderBottomColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
   },
   modalHeaderLeft: {
@@ -959,11 +959,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   modalDate: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -983,12 +983,12 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 6,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     borderRadius: 8,
   },
   modalContent: {
     padding: 16,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
   },
   infoGrid: {
     flexDirection: 'row',
@@ -1003,11 +1003,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   infoLabel: {
     fontSize: 9,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     marginBottom: 4,
     textTransform: 'uppercase',
     fontWeight: '800',
@@ -1016,7 +1016,7 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
   },
   addressSection: {
     marginBottom: 16,
@@ -1026,7 +1026,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   addressHeader: {
     flexDirection: 'row',
@@ -1037,12 +1037,12 @@ const styles = StyleSheet.create({
   addressLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#6F8B84',
+    color: '#64748B',
     textTransform: 'uppercase',
   },
   addressText: {
     fontSize: 13,
-    color: '#23423B',
+    color: '#0F172A',
     lineHeight: 18,
     fontWeight: '600',
   },
@@ -1055,20 +1055,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     marginBottom: 16,
   },
   descriptionLabel: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#9AB7AF',
+    color: '#94A3B8',
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   descriptionText: {
     fontSize: 13,
-    color: '#23423B',
+    color: '#0F172A',
     lineHeight: 18,
     fontWeight: '600',
   },
@@ -1078,17 +1078,17 @@ const styles = StyleSheet.create({
   },
   requestedByText: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     fontWeight: '600',
   },
   modalFooter: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#D8E7E1',
+    borderTopColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
   },
   closeModalButton: {
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1108,7 +1108,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
   },
   emptyContainer: {
@@ -1120,13 +1120,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
     marginTop: 12,
     marginBottom: 4,
   },
   emptyText: {
     fontSize: 13,
-    color: '#6F8B84',
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -1142,11 +1142,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
   },
   updateText: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     fontWeight: '600',
   },
   // Card Status Badge
@@ -1169,7 +1169,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 16,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,

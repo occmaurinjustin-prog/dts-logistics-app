@@ -252,7 +252,6 @@ class AuthService {
    */
   async getToken(): Promise<string | null> {
     const token = await AsyncStorage.getItem('authToken');
-    console.log('Retrieved token (first 30 chars):', token?.substring(0, 30));
     return token;
   }
 

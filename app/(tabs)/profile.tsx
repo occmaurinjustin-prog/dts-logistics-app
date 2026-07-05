@@ -260,7 +260,7 @@ export default function ProfileScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Modern Profile Header with Gradient */}
           <LinearGradient
-            colors={['#23423B', '#1E293B']}
+            colors={['#0F172A', '#1E293B']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.modernHeader}
@@ -269,14 +269,14 @@ export default function ProfileScreen() {
               <TouchableOpacity onPress={pickImage} style={styles.profileImageContainer} disabled={isUploading}>
                 <View style={styles.profileImage}>
                   {isUploading ? (
-                    <ActivityIndicator size="small" color="#0F6B5A" />
+                    <ActivityIndicator size="small" color="#10B981" />
                   ) : userData?.profile_image ? (
                     <Image 
                       source={{ uri: userData.profile_image.startsWith('http') ? userData.profile_image : `http://10.65.49.24:8000/storage/${userData.profile_image}` }} 
                       style={styles.avatarImage} 
                     />
                   ) : (
-                    <Ionicons name="person" size={32} color="#0F6B5A" />
+                    <Ionicons name="person" size={32} color="#10B981" />
                   )}
                   <View style={styles.editBadge}>
                     <Ionicons name="camera" size={12} color="#FFFFFF" />
@@ -296,7 +296,7 @@ export default function ProfileScreen() {
                 )}
                 
                 <View style={styles.driverBadge}>
-                  <Ionicons name="shield-checkmark" size={10} color="#0F6B5A" />
+                  <Ionicons name="shield-checkmark" size={10} color="#10B981" />
                   <Text style={styles.driverBadgeText}>Verified Driver</Text>
                 </View>
               </View>
@@ -316,7 +316,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.menuItemLeft}>
                   <View style={styles.menuIcon}>
-                    <Ionicons name={item.icon as any} size={18} color="#23423B" />
+                    <Ionicons name={item.icon as any} size={18} color="#0F172A" />
                   </View>
                   <View style={styles.menuItemContent}>
                     <Text style={styles.menuItemText}>{item.label}</Text>
@@ -349,7 +349,7 @@ export default function ProfileScreen() {
                     )}
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={14} color="#9AB7AF" />
+                <Ionicons name="chevron-forward" size={14} color="#94A3B8" />
               </TouchableOpacity>
             ))}
           </View>
@@ -371,7 +371,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     width: 22,
     height: 22,
     borderRadius: 11,
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
   },
   driverEmail: {
     fontSize: 12,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     marginTop: 2,
     fontWeight: '500',
   },
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
@@ -507,11 +507,11 @@ const styles = StyleSheet.create({
   statVal: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   statLabel: {
     fontSize: 10,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
     marginTop: 1,
   },
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 12,
   },
   menuItem: {
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -558,11 +558,11 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
   },
   menuItemSubtitle: {
     fontSize: 11,
-    color: '#6F8B84',
+    color: '#64748B',
     marginTop: 2,
     fontWeight: '500',
   },
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     textAlign: 'center',
     fontWeight: '500',
     marginBottom: 32,

@@ -260,7 +260,8 @@ const generateMapHTML = (
       // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors',
-        maxZoom: 20
+        maxZoom: 22,
+        maxNativeZoom: 19
       }).addTo(map);
 
       ${markersJS}

@@ -10,7 +10,7 @@ export default function ModalScreen() {
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.iconBg}>
-          <Ionicons name="information-circle-outline" size={32} color="#0F6B5A" />
+          <Ionicons name="information-circle-outline" size={32} color="#10B981" />
         </View>
         
         <Text style={styles.title}>System Notification</Text>
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     padding: 20,
   },
   card: {
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#E3F2EB',
+    backgroundColor: '#ECFDF5',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -65,19 +65,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 13,
-    color: '#6F8B84',
+    color: '#64748B',
     lineHeight: 18,
     textAlign: 'center',
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 24,

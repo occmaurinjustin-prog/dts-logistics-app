@@ -303,7 +303,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#DDE9E3" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* PREMIUM ENTERPRISE HEADER */}
         <View style={styles.header}>
@@ -328,7 +328,7 @@ export default function HomeScreen() {
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.notificationButton}>
-              <Ionicons name="notifications-outline" size={20} color="#23423B" />
+              <Ionicons name="notifications-outline" size={20} color="#0F172A" />
               {activeDeliveries.length > 0 && (
                 <View style={styles.notificationBadge}>
                   <Text style={styles.notificationBadgeText}>{activeDeliveries.length}</Text>
@@ -336,11 +336,11 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.onlineToggle, { backgroundColor: isOnline ? '#0F6B5A' : '#6F8B84' }]}
+              style={[styles.onlineToggle, { backgroundColor: isOnline ? '#10B981' : '#64748B' }]}
               onPress={() => setIsOnline(!isOnline)}
             >
               <View style={styles.onlineToggleRow}>
-                <View style={[styles.statusDot, { backgroundColor: isOnline ? '#FFFFFF' : '#C7DDD5' }]} />
+                <View style={[styles.statusDot, { backgroundColor: isOnline ? '#FFFFFF' : '#CBD5E1' }]} />
                 <Text style={styles.onlineToggleText}>{isOnline ? 'ONLINE' : 'OFFLINE'}</Text>
               </View>
             </TouchableOpacity>
@@ -361,8 +361,8 @@ export default function HomeScreen() {
             <Text style={styles.sectionLabel}>TODAY'S DRIVE TARGET</Text>
             <View style={styles.statsContainer}>
               <View style={styles.statCard}>
-                <View style={[styles.statIconWrapper, { backgroundColor: '#E3F2EB' }]}>
-                  <Ionicons name="checkmark-done-circle" size={20} color="#0F6B5A" />
+                <View style={[styles.statIconWrapper, { backgroundColor: '#ECFDF5' }]}>
+                  <Ionicons name="checkmark-done-circle" size={20} color="#10B981" />
                 </View>
                 <Text style={styles.statVal}>{completedDeliveries.length}</Text>
                 <Text style={styles.statLbl}>Delivered</Text>
@@ -377,8 +377,8 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.statCard}>
-                <View style={[styles.statIconWrapper, { backgroundColor: '#E8F3EF' }]}>
-                  <Ionicons name="trending-up" size={20} color="#2D8C73" />
+                <View style={[styles.statIconWrapper, { backgroundColor: '#EEF2FF' }]}>
+                  <Ionicons name="trending-up" size={20} color="#6366F1" />
                 </View>
                 <Text style={styles.statVal}>
                   {completedDeliveries.length + activeDeliveries.length > 0
@@ -395,7 +395,7 @@ export default function HomeScreen() {
             <View style={styles.speedHeaderRow}>
               <Text style={styles.sectionLabel}>VIRTUAL DRIVE HUB</Text>
               <View style={styles.speedBadge}>
-                <Ionicons name="car-sport" size={12} color="#0F6B5A" />
+                <Ionicons name="car-sport" size={12} color="#10B981" />
                 <Text style={styles.speedBadgeText}>Fleet Connected</Text>
               </View>
             </View>
@@ -412,7 +412,7 @@ export default function HomeScreen() {
               </View>
               <View style={styles.speedHubRight}>
                 <View style={styles.hubInfoRow}>
-                  <Ionicons name="barcode" size={16} color="#6F8B84" />
+                  <Ionicons name="barcode" size={16} color="#64748B" />
                   <View style={styles.hubInfoCol}>
                     <Text style={styles.hubInfoLabel}>TRUCK PLATE</Text>
                     <Text style={styles.hubInfoVal}>{userData?.driver?.truck?.plate_number || 'A12-3456'}</Text>
@@ -420,7 +420,7 @@ export default function HomeScreen() {
                 </View>
                 <View style={styles.hubDivider} />
                 <View style={styles.hubInfoRow}>
-                  <Ionicons name="speedometer-outline" size={16} color="#6F8B84" />
+                  <Ionicons name="speedometer-outline" size={16} color="#64748B" />
                   <View style={styles.hubInfoCol}>
                     <Text style={styles.hubInfoLabel}>TOTAL ODOMETER</Text>
                     <Text style={styles.hubInfoVal}>14,285 KM</Text>
@@ -437,7 +437,7 @@ export default function HomeScreen() {
             {!currentDelivery ? (
               <View style={styles.emptyStatusCard}>
                 <View style={styles.emptyStatusIcon}>
-                  <Ionicons name="cube" size={28} color="#0F6B5A" />
+                  <Ionicons name="cube" size={28} color="#10B981" />
                 </View>
                 <Text style={styles.emptyStatusTitle}>All Shipments Completed</Text>
                 <Text style={styles.emptyStatusSubtitle}>You are currently standby for new dispatch assignments</Text>
@@ -455,7 +455,7 @@ export default function HomeScreen() {
                     backgroundColor: currentDelivery.status === 'in_transit' ? '#FEE2E2' : '#EFF6FF'
                   }]}>
                     <Text style={[styles.statusBadgeText, {
-                      color: currentDelivery.status === 'in_transit' ? '#EF4444' : '#2A9D8F'
+                      color: currentDelivery.status === 'in_transit' ? '#EF4444' : '#3B82F6'
                     }]}>{getStatusLabel(currentDelivery.status).toUpperCase()}</Text>
                   </View>
                 </View>
@@ -465,7 +465,7 @@ export default function HomeScreen() {
                   <View style={styles.routeInfoContainer}>
                     <View style={styles.routeContainer}>
                       <View style={styles.routePoint}>
-                        <View style={[styles.routeDot, { backgroundColor: '#2D8C73' }]}>
+                        <View style={[styles.routeDot, { backgroundColor: '#6366F1' }]}>
                           <View style={styles.routeDotInner} />
                         </View>
                         <View style={styles.routeLine} />
@@ -478,7 +478,7 @@ export default function HomeScreen() {
                       </View>
                       
                       <View style={styles.routePoint}>
-                        <View style={[styles.routeDot, { backgroundColor: '#0F6B5A' }]}>
+                        <View style={[styles.routeDot, { backgroundColor: '#0F172A' }]}>
                           <Ionicons name="location" size={10} color="#FFFFFF" />
                         </View>
                         <View style={styles.routeInfo}>
@@ -492,7 +492,7 @@ export default function HomeScreen() {
 
                     {currentDelivery.eta && (
                       <View style={styles.etaContainer}>
-                        <Ionicons name="time" size={14} color="#2D8C73" />
+                        <Ionicons name="time" size={14} color="#6366F1" />
                         <Text style={styles.etaText}>ETA {currentDelivery.eta}</Text>
                       </View>
                     )}
@@ -591,7 +591,7 @@ export default function HomeScreen() {
                     <Text style={styles.assignedTracking}>WAYBILL #{delivery.waybill}</Text>
                     <Text style={styles.assignedCustomer}>{delivery.customer}</Text>
                     <View style={styles.assignedMeta}>
-                      <Ionicons name="location" size={13} color="#6F8B84" />
+                      <Ionicons name="location" size={13} color="#64748B" />
                       <Text style={styles.assignedAddress} numberOfLines={1}>
                         {delivery.delivery_address}
                       </Text>
@@ -599,10 +599,10 @@ export default function HomeScreen() {
                   </View>
                   <View style={styles.assignedRight}>
                     <View style={[styles.assignedStatus, {
-                      backgroundColor: delivery.status === 'in_transit' ? '#FEE2E2' : '#EEF4F1'
+                      backgroundColor: delivery.status === 'in_transit' ? '#FEE2E2' : '#F1F5F9'
                     }]}>
                       <Text style={[styles.assignedStatusText, {
-                        color: delivery.status === 'in_transit' ? '#EF4444' : '#6F8B84'
+                        color: delivery.status === 'in_transit' ? '#EF4444' : '#64748B'
                       }]}>
                         {delivery.status === 'in_transit' ? 'TRANSIT' : 'READY'}
                       </Text>
@@ -622,7 +622,7 @@ export default function HomeScreen() {
             
             {completedDeliveries.length === 0 ? (
               <View style={styles.emptyHistory}>
-                <Ionicons name="checkmark-done" size={20} color="#6F8B84" />
+                <Ionicons name="checkmark-done" size={20} color="#64748B" />
                 <Text style={styles.emptyHistoryText}>No deliveries completed today</Text>
               </View>
             ) : (
@@ -644,7 +644,7 @@ export default function HomeScreen() {
                       </View>
                       <Text style={styles.timelineCustomer}>{delivery.customer}</Text>
                       <View style={styles.timelineMeta}>
-                        <Ionicons name="location" size={13} color="#6F8B84" />
+                        <Ionicons name="location" size={13} color="#64748B" />
                         <Text style={styles.timelineAddress} numberOfLines={1}>
                           {delivery.delivery_address}
                         </Text>
@@ -671,7 +671,7 @@ const styles = StyleSheet.create({
   // Core layout
   container: {
     flex: 1,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
@@ -687,12 +687,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8F6F2',
+    backgroundColor: '#F8FAFC',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 15,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
   },
   bottomSpacing: {
@@ -707,7 +707,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 20,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     zIndex: 10,
   },
   headerLeft: {
@@ -718,12 +718,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#FFFFFF',
-    shadowColor: '#23423B',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   headerText: {
     marginLeft: 12,
@@ -740,11 +740,11 @@ const styles = StyleSheet.create({
   driverName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
   },
   driverId: {
     fontSize: 11,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '700',
     marginTop: 1,
     letterSpacing: 0.5,
@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   notificationBadge: {
     position: 'absolute',
@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
@@ -842,12 +842,12 @@ const styles = StyleSheet.create({
   statVal: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   statLbl: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#6F8B84',
+    color: '#64748B',
     marginTop: 2,
   },
 
@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
   speedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2EB',
+    backgroundColor: '#ECFDF5',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -873,7 +873,7 @@ const styles = StyleSheet.create({
   speedBadgeText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#0F6B5A',
+    color: '#10B981',
   },
   speedHubCard: {
     backgroundColor: '#FFFFFF',
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     borderRightWidth: 1,
-    borderRightColor: '#EEF4F1',
+    borderRightColor: '#F1F5F9',
     paddingRight: 16,
   },
   speedDial: {
@@ -901,19 +901,19 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     borderWidth: 4,
-    borderColor: '#0F6B5A',
+    borderColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
   },
   speedNum: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#23423B',
+    color: '#0F172A',
   },
   speedUnit: {
     fontSize: 8,
     fontWeight: '700',
-    color: '#6F8B84',
+    color: '#64748B',
   },
   speedLimitSign: {
     width: 40,
@@ -928,13 +928,13 @@ const styles = StyleSheet.create({
   speedLimitText: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#23423B',
+    color: '#0F172A',
     lineHeight: 14,
   },
   speedLimitSub: {
     fontSize: 6,
     fontWeight: '800',
-    color: '#6F8B84',
+    color: '#64748B',
   },
   speedHubRight: {
     flex: 1,
@@ -953,24 +953,24 @@ const styles = StyleSheet.create({
   hubInfoLabel: {
     fontSize: 8,
     fontWeight: '800',
-    color: '#9AB7AF',
+    color: '#94A3B8',
     letterSpacing: 0.5,
   },
   hubInfoVal: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#35645A',
+    color: '#334155',
   },
   hubDivider: {
     height: 1,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
   },
 
   // Section labels
   sectionLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#6F8B84',
+    color: '#64748B',
     letterSpacing: 1.5,
     marginBottom: 8,
   },
@@ -985,14 +985,14 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#C7DDD5',
+    borderColor: '#CBD5E1',
     borderStyle: 'dashed',
   },
   emptyStatusIcon: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E3F2EB',
+    backgroundColor: '#ECFDF5',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -1000,19 +1000,19 @@ const styles = StyleSheet.create({
   emptyStatusTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 4,
   },
   emptyStatusSubtitle: {
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 16,
     marginBottom: 16,
   },
   browseButton: {
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#DDE9E3',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
@@ -1029,7 +1029,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -1043,7 +1043,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   trackingBadge: {
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1051,7 +1051,7 @@ const styles = StyleSheet.create({
   trackingBadgeText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -1103,7 +1103,7 @@ const styles = StyleSheet.create({
     top: 20,
     width: 2,
     height: 20,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
   },
   routeInfo: {
     flex: 1,
@@ -1111,19 +1111,19 @@ const styles = StyleSheet.create({
   routeLabel: {
     fontSize: 8,
     fontWeight: '800',
-    color: '#9AB7AF',
+    color: '#94A3B8',
     letterSpacing: 0.8,
     marginBottom: 1,
   },
   routeAddress: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#35645A',
+    color: '#334155',
   },
   etaContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F3EF',
+    backgroundColor: '#EEF2FF',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1133,7 +1133,7 @@ const styles = StyleSheet.create({
   etaText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#2D8C73',
+    color: '#6366F1',
   },
   miniMapHalfContainer: {
     flex: 0.9,
@@ -1141,9 +1141,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   liveMapBadge: {
     position: 'absolute',
@@ -1151,7 +1151,7 @@ const styles = StyleSheet.create({
     right: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#0F172A',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 8,
@@ -1161,7 +1161,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#0F172A',
   },
   liveMapText: {
     fontSize: 8,
@@ -1169,7 +1169,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   actionButton: {
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1198,7 +1198,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 4,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     alignItems: 'center',
     position: 'relative',
     shadowColor: '#000',
@@ -1214,17 +1214,17 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#F8F6F2',
+    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#EEF4F1',
+    borderColor: '#F1F5F9',
   },
   actionLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#4F6C66',
+    color: '#475569',
     textAlign: 'center',
   },
   actionBadge: {
@@ -1258,7 +1258,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#0F6B5A',
+    color: '#10B981',
   },
   assignedCard: {
     flexDirection: 'row',
@@ -1267,7 +1267,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.02,
@@ -1275,7 +1275,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   assignedCardFirst: {
-    borderColor: '#0F6B5A',
+    borderColor: '#10B981',
     borderWidth: 1.5,
   },
   assignedLeft: {
@@ -1284,13 +1284,13 @@ const styles = StyleSheet.create({
   assignedTracking: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#6F8B84',
+    color: '#64748B',
     marginBottom: 3,
   },
   assignedCustomer: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 4,
   },
   assignedMeta: {
@@ -1300,7 +1300,7 @@ const styles = StyleSheet.create({
   },
   assignedAddress: {
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     flex: 1,
   },
   assignedRight: {
@@ -1319,7 +1319,7 @@ const styles = StyleSheet.create({
   assignedDistance: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
   },
 
   // History timeline
@@ -1334,12 +1334,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     gap: 8,
   },
   emptyHistoryText: {
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
   },
   timeline: {
@@ -1347,7 +1347,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   timelineItem: {
     flexDirection: 'row',
@@ -1361,13 +1361,13 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#0F172A',
     marginTop: 4,
   },
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#EEF4F1',
+    backgroundColor: '#F1F5F9',
     marginTop: 4,
   },
   timelineContent: {
@@ -1382,10 +1382,10 @@ const styles = StyleSheet.create({
   timelineTracking: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#6F8B84',
+    color: '#64748B',
   },
   deliveredBadge: {
-    backgroundColor: '#BFE8D8',
+    backgroundColor: '#D1FAE5',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
@@ -1393,12 +1393,12 @@ const styles = StyleSheet.create({
   deliveredBadgeText: {
     fontSize: 8,
     fontWeight: '800',
-    color: '#0F6B5A',
+    color: '#10B981',
   },
   timelineCustomer: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 2,
   },
   timelineMeta: {
@@ -1409,12 +1409,12 @@ const styles = StyleSheet.create({
   },
   timelineAddress: {
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     flex: 1,
   },
   timelineTime: {
     fontSize: 10,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     fontWeight: '600',
   },
 });

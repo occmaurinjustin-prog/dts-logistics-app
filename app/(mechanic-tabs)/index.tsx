@@ -374,59 +374,7 @@ export default function MechanicDashboardScreen() {
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F6B5A" colors={['#0F6B5A']} />}
           >
-            {/* ─── SECTION 1: CURRENT ASSIGNMENT ─── */}
-            {activeRescue ? (
-              <PressableCard
-                onPress={() => router.push('/(mechanic-tabs)/assignments' as any)}
-                style={s.heroCard}
-              >
-                <View style={s.heroTop}>
-                  <View style={s.heroLive}>
-                    <View style={s.liveDot} />
-                    <Text style={s.liveText}>ACTIVE RESCUE</Text>
-                  </View>
-                  <View style={[s.priorityBadge, { backgroundColor: activeRescue.status === 'assigned' ? '#FEF3C7' : '#DCFCE7' }]}>
-                    <Text style={[s.priorityText, { color: activeRescue.status === 'assigned' ? '#92400E' : '#166534' }]}>
-                      {activeRescue.status.toUpperCase().replace('_', ' ')}
-                    </Text>
-                  </View>
-                </View>
-                <View style={s.heroBody}>
-                  <View style={s.heroMeta}>
-                    <Ionicons name="car-sport" size={16} color="#9AB7AF" />
-                    <Text style={s.heroMetaText}>{activeRescue.truck?.plate_number || 'N/A'}</Text>
-                  </View>
-                  <View style={s.heroMeta}>
-                    <Ionicons name="person" size={16} color="#9AB7AF" />
-                    <Text style={s.heroMetaText}>
-                      {activeRescue.driver?.user ? `${activeRescue.driver.user.firstname || ''} ${activeRescue.driver.user.lastname || ''}`.trim() : 'Driver'}
-                    </Text>
-                  </View>
-                  <View style={s.heroMeta}>
-                    <Ionicons name="construct" size={16} color="#9AB7AF" />
-                    <Text style={s.heroMetaText}>{activeRescue.issue_category}</Text>
-                  </View>
-                  {activeRescue.address && (
-                    <View style={s.heroMeta}>
-                      <Ionicons name="location" size={16} color="#9AB7AF" />
-                      <Text style={s.heroMetaText} numberOfLines={1}>{activeRescue.address}</Text>
-                    </View>
-                  )}
-                </View>
-                <View style={s.heroAction}>
-                  <Text style={s.heroActionText}>View Assignment</Text>
-                  <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
-                </View>
-              </PressableCard>
-            ) : (
-              <View style={s.heroEmpty}>
-                <View style={s.heroEmptyIcon}>
-                  <Ionicons name="checkmark-circle" size={32} color="#0F6B5A" />
-                </View>
-                <Text style={s.heroEmptyTitle}>All Clear</Text>
-                <Text style={s.heroEmptySub}>No active assignment right now</Text>
-              </View>
-            )}
+
 
             {/* ─── SECTION 2: QUICK ACTIONS ─── */}
             <Text style={s.sectionTitle}>Quick Actions</Text>
@@ -634,38 +582,7 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1,
   },
 
-  // Hero – Active Assignment
-  heroCard: {
-    backgroundColor: '#0F6B5A', borderRadius: 20, padding: 20, marginBottom: 24,
-    shadowColor: '#23423B', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 10,
-  },
-  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  heroLive: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' },
-  liveText: { fontSize: 11, fontWeight: '800', color: '#EF4444', letterSpacing: 1 },
-  priorityBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  priorityText: { fontSize: 11, fontWeight: '700' },
-  heroBody: { gap: 10, marginBottom: 20 },
-  heroMeta: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  heroMetaText: { fontSize: 14, color: '#C7DDD5', fontWeight: '500', flex: 1 },
-  heroAction: {
-    backgroundColor: '#0F6B5A', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 14, borderRadius: 14, gap: 6,
-  },
-  heroActionText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
 
-  // Hero – Empty
-  heroEmpty: {
-    backgroundColor: '#FFFFFF', borderRadius: 20, paddingVertical: 32, alignItems: 'center',
-    marginBottom: 24, borderWidth: 1, borderColor: '#EEF4F1',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 8, elevation: 2,
-  },
-  heroEmptyIcon: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: '#E3F2EB',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 12,
-  },
-  heroEmptyTitle: { fontSize: 17, fontWeight: '700', color: '#23423B', marginBottom: 4 },
-  heroEmptySub: { fontSize: 13, color: '#9AB7AF', fontWeight: '500' },
 
   // Section
   sectionTitle: { fontSize: 15, fontWeight: '800', color: '#23423B', marginBottom: 12, letterSpacing: -0.3 },

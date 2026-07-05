@@ -74,7 +74,7 @@ export default function RescueHistoryScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#23423B" />
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Rescue History</Text>
         <View style={{ width: 40 }} />
@@ -83,13 +83,13 @@ export default function RescueHistoryScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {loading ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#0F6B5A" />
+            <ActivityIndicator size="large" color="#10B981" />
             <Text style={styles.loadingText}>Loading history...</Text>
           </View>
         ) : history.length === 0 ? (
           <View style={styles.centerContainer}>
             <View style={styles.iconCircle}>
-              <Ionicons name="shield-checkmark" size={40} color="#0F6B5A" />
+              <Ionicons name="shield-checkmark" size={40} color="#10B981" />
             </View>
             <Text style={styles.emptyTitle}>No Rescue History</Text>
             <Text style={styles.emptyText}>You haven't requested any emergency rescues.</Text>
@@ -108,13 +108,13 @@ export default function RescueHistoryScreen() {
               <Text style={styles.description}>{rescue.description || 'No description provided'}</Text>
               
               <View style={styles.detailsRow}>
-                <Ionicons name="location" size={14} color="#6F8B84" />
+                <Ionicons name="location" size={14} color="#64748B" />
                 <Text style={styles.detailsText} numberOfLines={1}>{rescue.address || 'GPS Location'}</Text>
               </View>
               
               {rescue.mechanic && (
                 <View style={styles.detailsRow}>
-                  <Ionicons name="person" size={14} color="#6F8B84" />
+                  <Ionicons name="person" size={14} color="#64748B" />
                   <Text style={styles.detailsText}>Mechanic: {rescue.mechanic.username}</Text>
                 </View>
               )}
@@ -145,7 +145,7 @@ export default function RescueHistoryScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     paddingTop: Platform.OS === 'ios' ? 0 : 40,
   },
   header: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#D8E7E1',
+    borderBottomColor: '#E2E8F0',
   },
   backButton: {
     padding: 8,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
   },
   scrollView: {
     flex: 1,
@@ -180,14 +180,14 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '500',
   },
   iconCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#BFE8D8',
+    backgroundColor: '#D1FAE5',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -195,11 +195,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 8,
   },
   emptyText: {
-    color: '#6F8B84',
+    color: '#64748B',
     textAlign: 'center',
   },
   card: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2A9D8F',
+    backgroundColor: '#3B82F6',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -235,13 +235,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   statusText: {
-    color: '#0F6B5A',
+    color: '#10B981',
     fontWeight: '800',
     fontSize: 12,
   },
   description: {
     fontSize: 14,
-    color: '#35645A',
+    color: '#334155',
     fontWeight: '500',
     marginBottom: 12,
   },
@@ -251,23 +251,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   detailsText: {
-    color: '#6F8B84',
+    color: '#64748B',
     fontSize: 13,
     marginLeft: 6,
     flex: 1,
   },
   partsContainer: {
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 12,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   partsTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#4F6C66',
+    color: '#475569',
     marginBottom: 6,
   },
   partRow: {
@@ -277,21 +277,21 @@ const styles = StyleSheet.create({
   },
   partName: {
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
   },
   partQty: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#4F6C66',
+    color: '#475569',
   },
   divider: {
     height: 1,
-    backgroundColor: '#D8E7E1',
+    backgroundColor: '#E2E8F0',
     marginVertical: 12,
   },
   dateText: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     fontWeight: '500',
     textAlign: 'right',
   },

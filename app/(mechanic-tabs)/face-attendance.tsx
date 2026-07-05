@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, Image, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, Image, Platform, Animated } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -64,6 +64,30 @@ export default function FaceAttendanceScreen() {
       verifyAndLogAttendance();
     }
   }, [photo]);
+
+  // Scanner animation for verifying state
+  const scanAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isProcessing) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scanAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scanAnim, {
+            toValue: 0,
+            duration: 1500,
+            useNativeDriver: true,
+          })
+        ])
+      ).start();
+    } else {
+      scanAnim.stopAnimation();
+    }
+  }, [isProcessing]);
 
   if (isCheckingState) {
     return (
@@ -272,8 +296,24 @@ export default function FaceAttendanceScreen() {
         
         {isProcessing && (
           <View style={styles.overlay}>
-            <ActivityIndicator size="large" color="#0F6B5A" />
-            <Text style={styles.overlayText}>Verifying Face...</Text>
+            <Animated.View 
+              style={[
+                styles.scannerLine, 
+                {
+                  transform: [{
+                    translateY: scanAnim.interpolate({
+                      inputRange: [0, 1],
+                      // Assuming photo preview is full screen minus headers, about 600px
+                      outputRange: [-300, 300] 
+                    })
+                  }]
+                }
+              ]} 
+            />
+            <View style={styles.verifyingPill}>
+              <ActivityIndicator size="small" color="#0F6B5A" />
+              <Text style={styles.overlayText}>Verifying Face...</Text>
+            </View>
           </View>
         )}
 
@@ -443,15 +483,15 @@ const styles = StyleSheet.create({
   },
 
   faceGuide: { 
-    width: 280, 
-    height: 380, 
+    width: 320, 
+    height: 420, 
     borderWidth: 3, 
     borderColor: 'rgba(16, 185, 129, 0.6)', 
     borderStyle: 'dashed', 
-    borderRadius: 140, 
-    marginBottom: 40 
+    borderRadius: 160, 
+    marginBottom: 40,
+    overflow: 'hidden'
   },
-  
   cameraControls: { 
     position: 'absolute', 
     bottom: 40, 
@@ -497,7 +537,7 @@ const styles = StyleSheet.create({
   preview: { flex: 1, width: '100%' },
   controls: { 
     position: 'absolute', 
-    bottom: 40, 
+    bottom: 120, 
     left: 20, 
     right: 20, 
     alignItems: 'center' 
@@ -514,14 +554,44 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   
+  scannerLine: {
+    width: '100%',
+    height: 4,
+    backgroundColor: '#34D399',
+    shadowColor: '#34D399',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 5,
+    position: 'absolute',
+  },
+  verifyingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 10,
+    position: 'absolute',
+    bottom: 120,
+  },
   overlay: { 
     ...StyleSheet.absoluteFillObject, 
-    backgroundColor: 'rgba(15,23,42,0.85)', 
+    backgroundColor: 'rgba(0,0,0,0.4)', 
     justifyContent: 'center', 
-    alignItems: 'center', 
-    zIndex: 10 
+    alignItems: 'center' 
   },
-  overlayText: { color: '#0F6B5A', marginTop: 16, fontSize: 18, fontWeight: 'bold' },
+  overlayText: { 
+    color: '#0F6B5A', 
+    fontWeight: 'bold', 
+    fontSize: 16,
+    marginLeft: 10,
+  },
   
   resultContainer: { 
     position: 'absolute', 

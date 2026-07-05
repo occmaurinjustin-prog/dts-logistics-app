@@ -177,7 +177,7 @@ export default function MaintenanceScreen() {
         {/* Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={22} color="#23423B" />
+            <Ionicons name="arrow-back" size={22} color="#0F172A" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Maintenance Reports</Text>
           <View style={{ width: 24 }} />
@@ -194,13 +194,13 @@ export default function MaintenanceScreen() {
             <View style={styles.truckInfoHeader}>
               <Text style={styles.subsectionTitle}>Truck Information</Text>
               <TouchableOpacity onPress={fetchTruckInfo} style={styles.refreshButton}>
-                <Ionicons name="refresh" size={16} color="#0F6B5A" />
+                <Ionicons name="refresh" size={16} color="#10B981" />
               </TouchableOpacity>
             </View>
             
             {loadingTruckInfo ? (
               <View style={[styles.reportInput, styles.loadingContainer]}>
-                <ActivityIndicator size="small" color="#0F6B5A" />
+                <ActivityIndicator size="small" color="#10B981" />
                 <Text style={styles.loadingText}>Loading truck information...</Text>
               </View>
             ) : (
@@ -345,7 +345,7 @@ export default function MaintenanceScreen() {
               
               {loadingHistory ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#0F6B5A" />
+                  <ActivityIndicator size="large" color="#10B981" />
                   <Text style={styles.loadingText}>Loading maintenance history...</Text>
                 </View>
               ) : maintenanceHistory.length === 0 ? (
@@ -423,7 +423,7 @@ export default function MaintenanceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#D8E7E1',
+    borderBottomColor: '#E2E8F0',
   },
   backButton: {
     padding: 4,
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
     textAlign: 'center',
   },
   scrollView: {
@@ -487,20 +487,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     marginTop: 16,
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
     marginBottom: 14,
   },
   subsectionTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#4F6C66',
+    color: '#475569',
     marginBottom: 8,
   },
   truckInfoHeader: {
@@ -512,18 +512,18 @@ const styles = StyleSheet.create({
   refreshButton: {
     padding: 6,
     borderRadius: 8,
-    backgroundColor: '#E3F2EB',
+    backgroundColor: '#ECFDF5',
   },
   reportInput: {
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
     fontSize: 13,
-    color: '#23423B',
+    color: '#0F172A',
   },
   displayField: {
     flexDirection: 'row',
@@ -535,13 +535,13 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 10,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   fieldValue: {
     fontSize: 14,
-    color: '#23423B',
+    color: '#0F172A',
     fontWeight: '700',
     marginTop: 1,
   },
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginLeft: 8,
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '500',
   },
   reportTextarea: {
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   },
   exampleText: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     fontStyle: 'italic',
     marginBottom: 6,
   },
@@ -581,8 +581,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priorityButtonActive: {
-    backgroundColor: '#0F6B5A',
-    borderColor: '#0F6B5A',
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
   },
   priorityButtonText: {
     fontSize: 11,
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
   reportButton: {
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 12,
@@ -605,14 +605,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   reportButtonDisabled: {
-    backgroundColor: '#9AB7AF',
+    backgroundColor: '#94A3B8',
     opacity: 0.7,
   },
   historyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F6B5A',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     padding: 14,
     marginBottom: 24,
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   modalContainer: {
-    backgroundColor: '#DDE9E3',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     width: '92%',
     maxHeight: '82%',
@@ -654,12 +654,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#D8E7E1',
+    borderBottomColor: '#E2E8F0',
   },
   modalTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#23423B',
+    color: '#0F172A',
   },
   modalContent: {
     padding: 16,
@@ -679,13 +679,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF3C7',
   },
   statusBadgeApproved: {
-    backgroundColor: '#E3F2EB',
+    backgroundColor: '#ECFDF5',
   },
   statusBadgeRepairOngoing: {
     backgroundColor: '#FFF7ED',
   },
   statusBadgeFixed: {
-    backgroundColor: '#E3F2EB',
+    backgroundColor: '#ECFDF5',
   },
   statusBadgeRejected: {
     backgroundColor: '#FEF2F2',
@@ -702,13 +702,13 @@ const styles = StyleSheet.create({
     color: '#D97706',
   },
   statusBadgeTextApproved: {
-    color: '#0F6B5A',
+    color: '#10B981',
   },
   statusBadgeTextRepairOngoing: {
     color: '#EA580C',
   },
   statusBadgeTextFixed: {
-    color: '#0F6B5A',
+    color: '#10B981',
   },
   statusBadgeTextRejected: {
     color: '#EF4444',
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#D8E7E1',
+    borderColor: '#E2E8F0',
   },
   historyHeader: {
     flexDirection: 'row',
@@ -731,30 +731,30 @@ const styles = StyleSheet.create({
   },
   historyId: {
     fontSize: 11,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '700',
   },
   historyTruck: {
     fontSize: 13,
-    color: '#23423B',
+    color: '#0F172A',
     fontWeight: '700',
     marginTop: 2,
   },
   historyIssue: {
     fontSize: 13,
-    color: '#23423B',
+    color: '#0F172A',
     fontWeight: '700',
     marginBottom: 4,
   },
   historyDate: {
     fontSize: 11,
-    color: '#9AB7AF',
+    color: '#94A3B8',
     marginTop: 2,
     fontWeight: '500',
   },
   historyMechanic: {
     fontSize: 11,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '600',
   },
   historyDetails: {
@@ -769,18 +769,18 @@ const styles = StyleSheet.create({
   emptyHistoryText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#23423B',
+    color: '#0F172A',
     marginTop: 10,
   },
   emptyHistorySubtext: {
     fontSize: 12,
-    color: '#6F8B84',
+    color: '#64748B',
     marginTop: 6,
     textAlign: 'center',
   },
   historyDescription: {
     fontSize: 12,
-    color: '#4F6C66',
+    color: '#475569',
     marginTop: 4,
     lineHeight: 18,
   },
@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
   },
   historyPriority: {
     fontSize: 11,
-    color: '#6F8B84',
+    color: '#64748B',
     fontWeight: '700',
   },
 });

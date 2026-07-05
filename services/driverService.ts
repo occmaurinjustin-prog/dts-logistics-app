@@ -167,7 +167,7 @@ class DriverService {
 
   /**
    * Update driver current location
-   * Call this every 5-10 seconds while driver is on duty
+   * If offline, queues the coordinate in AsyncStorage and flushes when back online.
    */
   async updateLocation(
     latitude: number,
@@ -176,18 +176,89 @@ class DriverService {
     heading?: number,
     isGpsEnabled?: boolean
   ): Promise<boolean> {
+    const point = {
+      latitude,
+      longitude,
+      speed: speed ?? 0,
+      heading: heading ?? 0,
+      is_gps_enabled: isGpsEnabled ?? true,
+      recorded_at: new Date().toISOString(),
+    };
+
     try {
       const response = await this.api.post('/driver/location', {
-        current_latitude: latitude,
-        current_longitude: longitude,
-        current_speed: speed ?? 0,
-        heading: heading ?? 0,
-        is_gps_enabled: isGpsEnabled ?? true,
+        current_latitude:  point.latitude,
+        current_longitude: point.longitude,
+        current_speed:     point.speed,
+        heading:           point.heading,
+        is_gps_enabled:    point.is_gps_enabled,
+        recorded_at:       point.recorded_at,
       });
+
+      // ✅ Online — try to flush any queued offline points
+      await this.flushOfflineQueue();
+
       return response.data.success ?? true;
     } catch (error) {
-      console.error('Error updating driver location:', error);
+      // ❌ No signal — save this point to the offline queue
+      console.warn('No signal — queuing location offline:', latitude, longitude);
+      await this.queueOfflineLocation(point);
       return false;
+    }
+  }
+
+  /**
+   * Save a single GPS point to the offline queue in AsyncStorage
+   */
+  private async queueOfflineLocation(point: object): Promise<void> {
+    try {
+      const raw = await AsyncStorage.getItem('@offline_locations');
+      const queue: object[] = raw ? JSON.parse(raw) : [];
+      queue.push(point);
+      // Cap queue at 500 points (~83 minutes at 10-sec intervals) to avoid unbounded growth
+      const trimmed = queue.slice(-500);
+      await AsyncStorage.setItem('@offline_locations', JSON.stringify(trimmed));
+      console.log(`Offline queue: ${trimmed.length} points stored`);
+    } catch (e) {
+      console.error('Failed to queue offline location:', e);
+    }
+  }
+
+  /**
+   * Flush all queued offline GPS points to the backend (batch upload)
+   * Called automatically when the next normal location update succeeds.
+   */
+  async flushOfflineQueue(): Promise<void> {
+    try {
+      const raw = await AsyncStorage.getItem('@offline_locations');
+      if (!raw) return;
+
+      const queue: object[] = JSON.parse(raw);
+      if (queue.length === 0) return;
+
+      console.log(`Flushing ${queue.length} offline queued locations to server...`);
+
+      await this.api.post('/driver/location/batch', { locations: queue });
+
+      // Clear the queue after successful upload
+      await AsyncStorage.removeItem('@offline_locations');
+      console.log(`✅ ${queue.length} offline locations synced successfully`);
+    } catch (e) {
+      // Still offline — keep the queue, will retry next time
+      console.warn('Still offline — batch flush failed, keeping queue:', e);
+    }
+  }
+
+  /**
+   * Get the current number of queued offline GPS points
+   */
+  async getOfflineQueueCount(): Promise<number> {
+    try {
+      const raw = await AsyncStorage.getItem('@offline_locations');
+      if (!raw) return 0;
+      return JSON.parse(raw).length;
+    } catch {
+      return 0;
     }
   }
 

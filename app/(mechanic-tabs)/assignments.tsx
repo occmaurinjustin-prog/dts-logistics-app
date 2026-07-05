@@ -9,7 +9,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  RefreshControl
 } from 'react-native';
 import authService from '../../services/authService';
 
@@ -43,6 +44,7 @@ export default function MechanicAssignmentsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'maintenance' | 'rescue'>('maintenance');
 
   useEffect(() => {
     fetchAssignments();
@@ -174,9 +176,22 @@ export default function MechanicAssignmentsScreen() {
   };
 
   const filteredAssignments = assignments.filter(assignment => {
+    // Filter by tab type first
+    if (activeTab === 'maintenance' && assignment.is_rescue) return false;
+    if (activeTab === 'rescue' && !assignment.is_rescue) return false;
+
     if (filterStatus === 'all') return true;
-    if (filterStatus === 'scheduled') return assignment.status === 'scheduled' || assignment.status === 'approved';
-    if (filterStatus === 'completed') return assignment.status === 'completed' || assignment.status === 'resolved';
+    
+    if (filterStatus === 'scheduled') {
+        return assignment.status === 'scheduled' || assignment.status === 'approved' || assignment.status === 'pending' || assignment.status === 'assigned';
+    }
+    if (filterStatus === 'in_progress') {
+        return assignment.status === 'in_progress' || assignment.status === 'en_route' || assignment.status === 'arrived';
+    }
+    if (filterStatus === 'completed') {
+        return assignment.status === 'completed' || assignment.status === 'resolved';
+    }
+    
     return assignment.status === filterStatus;
   });
 
@@ -193,6 +208,24 @@ export default function MechanicAssignmentsScreen() {
               color="#23423B" 
               style={refreshing ? { transform: [{ rotate: '180deg' }] } : {}}
             />
+          </TouchableOpacity>
+        </View>
+
+        {/* Type Tabs */}
+        <View style={styles.typeTabsContainer}>
+          <TouchableOpacity 
+            style={[styles.typeTab, activeTab === 'maintenance' && styles.typeTabActive]}
+            onPress={() => setActiveTab('maintenance')}
+          >
+            <Ionicons name="build" size={16} color={activeTab === 'maintenance' ? '#FFFFFF' : '#6F8B84'} style={{marginRight: 6}} />
+            <Text style={[styles.typeTabText, activeTab === 'maintenance' && styles.typeTabTextActive]}>Maintenance</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.typeTab, activeTab === 'rescue' && styles.typeTabActive]}
+            onPress={() => setActiveTab('rescue')}
+          >
+            <Ionicons name="warning" size={16} color={activeTab === 'rescue' ? '#FFFFFF' : '#6F8B84'} style={{marginRight: 6}} />
+            <Text style={[styles.typeTabText, activeTab === 'rescue' && styles.typeTabTextActive]}>Rescue</Text>
           </TouchableOpacity>
         </View>
 
@@ -213,7 +246,18 @@ export default function MechanicAssignmentsScreen() {
           </ScrollView>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={['#0F6B5A']} // Android
+              tintColor="#0F6B5A" // iOS
+            />
+          }
+        >
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#0F6B5A" />
@@ -419,6 +463,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#D8E7E1',
+  },
+  typeTabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D8E7E1',
+    gap: 12,
+  },
+  typeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#EEF4F1',
+    borderRadius: 12,
+  },
+  typeTabActive: {
+    backgroundColor: '#0F6B5A',
+  },
+  typeTabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6F8B84',
+  },
+  typeTabTextActive: {
+    color: '#FFFFFF',
   },
   headerTitle: {
     fontSize: 18,
