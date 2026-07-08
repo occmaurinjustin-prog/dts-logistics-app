@@ -114,6 +114,10 @@ export default function RootLayout() {
           <Stack.Screen name="maintenance" options={{ headerShown: false }} />
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="truckinformation" options={{ headerShown: false }} />
+          <Stack.Screen name="change-password" options={{ headerShown: false }} />
+          <Stack.Screen name="rescue-request" options={{ headerShown: false }} />
+          <Stack.Screen name="rescue-history" options={{ headerShown: false }} />
+          <Stack.Screen name="rescue-mission" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
         <StatusBar style="auto" />

@@ -44,7 +44,7 @@ export default function NotificationsScreen() {
       const token = await authService.getToken();
       
       // Fetch maintenance reports from API
-      const response = await fetch('http://10.65.49.24:8000/api/driver/maintenance-reports', {
+      const response = await fetch('https://consult-powwow-vexingly.ngrok-free.dev/api/driver/maintenance-reports', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

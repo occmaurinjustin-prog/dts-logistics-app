@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 
-const API_BASE_URL = Platform.OS === 'android' ? 'http://10.65.49.24:8000/api' : 'http://localhost:8000/api';
+const API_BASE_URL = Platform.OS === 'android' ? 'https://consult-powwow-vexingly.ngrok-free.dev/api' : 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 
 export default function FaceAttendanceScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -256,9 +256,11 @@ export default function FaceAttendanceScreen() {
     }
   } else if (timeValue >= 11.83 && timeValue < 13) { // 11:50 AM - 1:00 PM
     greeting = "Good Day";
-    if (attendanceRecord?.morning_out) {
-      suggestionText = "Morning Time-Out Complete. Wait for Afternoon Shift";
+    if (attendanceRecord?.afternoon_in) {
+      suggestionText = "Wait until 3:50 PM to time out in the afternoon";
       isCaptureDisabled = true;
+    } else if (attendanceRecord?.morning_out) {
+      suggestionText = "Ready to Time In? (Afternoon Shift)";
     } else {
       suggestionText = "Ready for Morning Time-Out / Lunch?";
     }

@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import authService from '@/services/authService';
 
-const getApiBaseUrl = () => 'http://10.65.49.24:8000/api';
+const getApiBaseUrl = () => 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 
 export default function RescueMissionScreen() {
     const router = useRouter();

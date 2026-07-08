@@ -4,10 +4,10 @@ import axios from 'axios';
 const getApiBaseUrl = () => {
   // For web debugging
   if (typeof window !== 'undefined' && window.location?.hostname === 'localhost') {
-    return 'http://localhost:8000/api';
+    return 'https://consult-powwow-vexingly.ngrok-free.dev/api';
   }
   // For mobile, use the actual IP
-  return 'http://10.65.49.24:8000/api';
+  return 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();

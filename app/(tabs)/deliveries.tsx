@@ -28,10 +28,10 @@ const YOUR_COMPUTER_IP = '10.65.49.24';
 const getApiBaseUrl = () => {
   if (Platform.OS === 'android') {
     // Physical Android device uses your computer's IP
-    return `http://10.65.49.24:8000/api`;
+    return `https://consult-powwow-vexingly.ngrok-free.dev/api`;
   }
   // iOS simulator and web use localhost
-  return 'http://localhost:8000/api';
+  return 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -732,7 +732,7 @@ export default function DeliveriesScreen() {
                         return uri;
                       }
                       // Otherwise prepend the API base URL (adjust as needed)
-                      const API_BASE_URL = Platform.OS === 'web' ? 'http://localhost:8000' : 'http://10.65.49.24:8000';
+                      const API_BASE_URL = Platform.OS === 'web' ? 'https://consult-powwow-vexingly.ngrok-free.dev' : 'https://consult-powwow-vexingly.ngrok-free.dev';
                       // Ensure no leading slash duplication
                       const cleanUri = uri.startsWith('/') ? uri.slice(1) : uri;
                       return `${API_BASE_URL}/${cleanUri}`;

@@ -1,27 +1,26 @@
 import authService from '@/services/authService';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    Image,
-    ActivityIndicator
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 
 const getApiBaseUrl = () => {
   if (Platform.OS === 'android') {
-    return `http://10.65.49.24:8000/api`;
+    return `https://consult-powwow-vexingly.ngrok-free.dev/api`;
   }
-  return 'http://localhost:8000/api';
+  return 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 };
 
 export default function ProfileScreen() {
@@ -29,7 +28,7 @@ export default function ProfileScreen() {
   const [userData, setUserData] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  
+
   useEffect(() => {
     loadUserData();
   }, []);
@@ -64,10 +63,10 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     console.log('Logout button clicked');
-    
+
     // Check if running on web
     const isWeb = Platform.OS === 'web';
-    
+
     if (isWeb && typeof window !== 'undefined' && typeof window.confirm === 'function') {
       const confirmed = window.confirm('Are you sure you want to logout?');
       if (!confirmed) {
@@ -103,7 +102,7 @@ export default function ProfileScreen() {
       console.log('Logout API call completed');
       await authService.clearStorage();
       console.log('Storage cleared');
-      
+
       // Force reload the page to reset all state
       const isWeb = Platform.OS === 'web';
       if (isWeb && typeof window !== 'undefined' && typeof window.location?.href === 'string') {
@@ -126,31 +125,43 @@ export default function ProfileScreen() {
   };
 
   const menuItems = [
-    { icon: 'person-outline', label: 'Edit Profile', onPress: () => {} },
-    { icon: 'document-text-outline', label: 'Delivery History', onPress: () => {} },
-    { icon: 'build-outline', label: 'Maintenance Reports', onPress: () => {
-                console.log('Maintenance Reports clicked, navigating to dashboard');
-                router.push('/maintenance');
-              } },
-    { icon: 'car-outline', label: 'Truck Information', onPress: () => {
-                console.log('Truck Information clicked, navigating to truck info');
-                router.push('/truckinformation');
-              } },
-        { icon: 'notifications-outline', label: 'Notifications', onPress: () => {
-                    console.log('Notifications clicked, navigating to notifications');
-                    router.push('/notifications');
-                  } },
-    { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => {} },
-    { icon: 'alert-circle-outline', label: 'Emergency Rescue', onPress: () => {
+    { icon: 'person-outline', label: 'Edit Profile', onPress: () => { } },
+    { icon: 'document-text-outline', label: 'Delivery History', onPress: () => { } },
+    {
+      icon: 'build-outline', label: 'Maintenance Reports', onPress: () => {
+        console.log('Maintenance Reports clicked, navigating to dashboard');
+        router.push('/maintenance');
+      }
+    },
+    {
+      icon: 'car-outline', label: 'Truck Information', onPress: () => {
+        console.log('Truck Information clicked, navigating to truck info');
+        router.push('/truckinformation');
+      }
+    },
+    {
+      icon: 'notifications-outline', label: 'Notifications', onPress: () => {
+        console.log('Notifications clicked, navigating to notifications');
+        router.push('/notifications');
+      }
+    },
+    { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => { } },
+    {
+      icon: 'alert-circle-outline', label: 'Emergency Rescue', onPress: () => {
         router.push('/rescue-request');
-    } },
-    { icon: 'time-outline', label: 'Rescue History', onPress: () => {
+      }
+    },
+    {
+      icon: 'time-outline', label: 'Rescue History', onPress: () => {
         router.push('/rescue-history');
-    } },
-    { icon: 'lock-closed-outline', label: 'Change Password', onPress: () => {
+      }
+    },
+    {
+      icon: 'lock-closed-outline', label: 'Change Password', onPress: () => {
         router.push('/change-password');
-    } },
-    { icon: 'settings-outline', label: 'Settings', onPress: () => {} },
+      }
+    },
+    { icon: 'settings-outline', label: 'Settings', onPress: () => { } },
   ];
 
   const pickImage = async () => {
@@ -175,12 +186,12 @@ export default function ProfileScreen() {
     setIsUploading(true);
     try {
       const token = await authService.getToken();
-      
+
       const formData = new FormData();
       const filename = uri.split('/').pop() || 'profile.jpg';
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : `image/jpeg`;
-      
+
       formData.append('image', {
         uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
         name: filename,
@@ -196,9 +207,9 @@ export default function ProfileScreen() {
         },
         body: formData,
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         Alert.alert('Success', 'Profile image updated!');
         setUserData(data.user);
@@ -220,8 +231,8 @@ export default function ProfileScreen() {
       'Are you sure you want to remove your profile photo?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Remove', 
+        {
+          text: 'Remove',
           style: 'destructive',
           onPress: async () => {
             setIsUploading(true);
@@ -234,7 +245,7 @@ export default function ProfileScreen() {
                   'Accept': 'application/json',
                 },
               });
-              
+
               const data = await response.json();
               if (data.success) {
                 Alert.alert('Success', 'Profile image removed!');
@@ -258,12 +269,9 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Modern Profile Header with Gradient */}
-          <LinearGradient
-            colors={['#0F172A', '#1E293B']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.modernHeader}
+          {/* Modern Profile Header */}
+          <View
+            style={[styles.modernHeader, { backgroundColor: '#0F172A' }]}
           >
             <View style={styles.headerContent}>
               <TouchableOpacity onPress={pickImage} style={styles.profileImageContainer} disabled={isUploading}>
@@ -271,9 +279,9 @@ export default function ProfileScreen() {
                   {isUploading ? (
                     <ActivityIndicator size="small" color="#10B981" />
                   ) : userData?.profile_image ? (
-                    <Image 
-                      source={{ uri: userData.profile_image.startsWith('http') ? userData.profile_image : `http://10.65.49.24:8000/storage/${userData.profile_image}` }} 
-                      style={styles.avatarImage} 
+                    <Image
+                      source={{ uri: userData.profile_image && typeof userData.profile_image === 'string' && userData.profile_image.startsWith('http') ? userData.profile_image : `https://consult-powwow-vexingly.ngrok-free.dev/storage/${userData.profile_image}` }}
+                      style={styles.avatarImage}
                     />
                   ) : (
                     <Ionicons name="person" size={32} color="#10B981" />
@@ -288,20 +296,20 @@ export default function ProfileScreen() {
                   {userData?.firstname && userData?.lastname ? `${userData.firstname} ${userData.lastname}` : userData?.username || userData?.name || 'Driver'}
                 </Text>
                 <Text style={styles.driverEmail}>{userData?.email || 'driver@example.com'}</Text>
-                
+
                 {userData?.profile_image && !isUploading && (
                   <TouchableOpacity onPress={removeProfileImage} style={styles.removePhotoBtn}>
                     <Text style={styles.removePhotoText}>Remove Photo</Text>
                   </TouchableOpacity>
                 )}
-                
+
                 <View style={styles.driverBadge}>
                   <Ionicons name="shield-checkmark" size={10} color="#10B981" />
                   <Text style={styles.driverBadgeText}>Verified Driver</Text>
                 </View>
               </View>
             </View>
-          </LinearGradient>
+          </View>
 
 
           {/* Menu Items */}

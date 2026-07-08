@@ -21,8 +21,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // API URL - same as deliveries
 const API_BASE_URL = Platform.OS === 'web' 
-  ? 'http://localhost:8000/api'
-  : 'http://10.65.49.24:8000/api';
+  ? 'https://consult-powwow-vexingly.ngrok-free.dev/api'
+  : 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

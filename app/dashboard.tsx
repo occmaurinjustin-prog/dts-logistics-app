@@ -25,9 +25,9 @@ import driverService, { DriverProfile } from '../services/driverService';
 const YOUR_COMPUTER_IP = '10.65.49.24';
 const getApiBaseUrl = () => {
   if (Platform.OS === 'android') {
-    return `http://${YOUR_COMPUTER_IP}:8000/api`;
+    return `https://consult-powwow-vexingly.ngrok-free.dev/api`;
   }
-  return 'http://localhost:8000/api';
+  return 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 };
 const API_BASE_URL = getApiBaseUrl();
 

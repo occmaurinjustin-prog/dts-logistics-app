@@ -55,7 +55,7 @@ export default function MechanicAssignmentsScreen() {
       setLoading(true);
       const token = await authService.getToken();
       
-      const response = await fetch('http://10.65.49.24:8000/api/mechanic/assignments', {
+      const response = await fetch('https://consult-powwow-vexingly.ngrok-free.dev/api/mechanic/assignments', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -63,7 +63,7 @@ export default function MechanicAssignmentsScreen() {
         },
       });
 
-      const rescueResponse = await fetch('http://10.65.49.24:8000/api/rescue/mechanic/assignments', {
+      const rescueResponse = await fetch('https://consult-powwow-vexingly.ngrok-free.dev/api/rescue/mechanic/assignments', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -109,7 +109,7 @@ export default function MechanicAssignmentsScreen() {
     try {
       const token = await authService.getToken();
       
-      const response = await fetch(`http://10.65.49.24:8000/api/mechanic/assignments/${maintenanceId}/status`, {
+      const response = await fetch(`https://consult-powwow-vexingly.ngrok-free.dev/api/mechanic/assignments/${maintenanceId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -296,7 +296,7 @@ export default function MechanicAssignmentsScreen() {
                                     </Text>
                                 </View>
                                 <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
-                                    <Text style={[styles.statusText, { color: mainColor }]}>{assignment.status.toUpperCase()}</Text>
+                                    <Text style={[styles.statusText, { color: mainColor }]}>{(assignment.status || 'UNKNOWN').toUpperCase()}</Text>
                                 </View>
                             </View>
                             <Text style={styles.issueTitle}>{assignment.issue_category}</Text>
@@ -316,7 +316,7 @@ export default function MechanicAssignmentsScreen() {
                   activeOpacity={0.7}
                   onLongPress={() => Alert.alert(
                     'Quick Info', 
-                    `Issue: ${assignment.issue_title}\nPriority: ${assignment.priority_level.toUpperCase()}\nStatus: ${getStatusText(assignment.status)}`
+                    `Issue: ${assignment.issue_title || 'N/A'}\nPriority: ${(assignment.priority_level || 'low').toUpperCase()}\nStatus: ${getStatusText(assignment.status)}`
                   )}
                 >
                   <View style={styles.cardHeader}>
@@ -383,7 +383,7 @@ export default function MechanicAssignmentsScreen() {
                           style={styles.tooltipIcon}
                           onPress={() => Alert.alert(
                             'Assignment Details', 
-                            `Title: ${assignment.issue_title}\nStart Date: ${formatDate(assignment.repair_date)}\nTime: ${assignment.repair_time}\nLocation: ${assignment.repair_location}\nStatus: ${getStatusText(assignment.status)}\nPriority: ${assignment.priority_level.toUpperCase()}`
+                            `Title: ${assignment.issue_title || 'N/A'}\nStart Date: ${formatDate(assignment.repair_date)}\nTime: ${assignment.repair_time || 'N/A'}\nLocation: ${assignment.repair_location || 'N/A'}\nStatus: ${getStatusText(assignment.status)}\nPriority: ${(assignment.priority_level || 'low').toUpperCase()}`
                           )}
                         >
                           <Ionicons name="information-circle-outline" size={24} color="#9AB7AF" />
@@ -397,11 +397,8 @@ export default function MechanicAssignmentsScreen() {
                       styles.priorityBadge,
                       { backgroundColor: `${getPriorityColor(assignment.priority_level)}20` }
                     ]}>
-                      <Text style={[
-                        styles.priorityText,
-                        { color: getPriorityColor(assignment.priority_level) }
-                      ]}>
-                        {assignment.priority_level.toUpperCase()}
+                      <Text style={[styles.priorityText, { color: getPriorityColor(assignment.priority_level) }]}>
+                        {(assignment.priority_level || 'low').toUpperCase()}
                       </Text>
                     </View>
                     <Text style={styles.createdAt}>

@@ -71,7 +71,7 @@ export default function InspectionReportsScreen() {
       setLoading(true);
       const token = await authService.getToken();
       
-      const response = await fetch('http://10.65.49.24:8000/api/mechanic/inspection-reports', {
+      const response = await fetch('https://consult-powwow-vexingly.ngrok-free.dev/api/mechanic/inspection-reports', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -108,7 +108,7 @@ export default function InspectionReportsScreen() {
     try {
       const token = await authService.getToken();
       
-      const response = await fetch('http://10.65.49.24:8000/api/mechanic/trucks', {
+      const response = await fetch('https://consult-powwow-vexingly.ngrok-free.dev/api/mechanic/trucks', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -157,7 +157,7 @@ export default function InspectionReportsScreen() {
     try {
       const token = await authService.getToken();
       
-      const response = await fetch('http://10.65.49.24:8000/api/mechanic/inspection-reports', {
+      const response = await fetch('https://consult-powwow-vexingly.ngrok-free.dev/api/mechanic/inspection-reports', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -6,7 +6,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import authService from '@/services/authService';
 
-const getApiBaseUrl = () => 'http://10.65.49.24:8000/api';
+const getApiBaseUrl = () => 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 
 const ISSUE_CATEGORIES = ['Flat Tire', 'Engine Stall', 'Battery Dead', 'Overheating', 'Accident', 'Other'];
 

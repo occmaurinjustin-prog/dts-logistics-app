@@ -48,7 +48,7 @@ interface RescueAssignment {
 }
 
 // ── API Config ─────────────────────────────────────────
-const API_BASE = Platform.OS === 'android' ? 'http://10.65.49.24:8000/api' : 'http://localhost:8000/api';
+const API_BASE = Platform.OS === 'android' ? 'https://consult-powwow-vexingly.ngrok-free.dev/api' : 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 
 // ── Animated Pressable ─────────────────────────────────
 const PressableCard = ({ children, onPress, style }: any) => {

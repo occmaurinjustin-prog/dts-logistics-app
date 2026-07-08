@@ -39,8 +39,8 @@ const SNAP_POINTS = {
 };
 
 const API_BASE_URL = Platform.OS === 'web'
-  ? 'http://localhost:8000/api'
-  : 'http://10.65.49.24:8000/api';
+  ? 'https://consult-powwow-vexingly.ngrok-free.dev/api'
+  : 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -617,6 +617,14 @@ export default function NavigationScreen() {
     };
   }, []);
 
+  // Auto-resume GPS tracking if navigating state was restored from AsyncStorage
+  useEffect(() => {
+    if (isNavigating && !locationSubscription.current) {
+      console.log('Restored navigation state detected, auto-starting GPS tracking...');
+      startGPSTracking();
+    }
+  }, [isNavigating]);
+
   // Real-time route update: when location changes during navigation, trigger map refresh
   useEffect(() => {
     if (isNavigating && location && navigationPhase !== 'complete') {
@@ -715,18 +723,17 @@ export default function NavigationScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        mediaTypes: ['images'],
+        allowsEditing: false, // Disabling editing to prevent Android OOM and crop intent errors
+        quality: 0.5,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setPodImage(result.assets[0].uri);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Camera error:', error);
-      Alert.alert('Error', 'An error occurred while taking a photo.');
+      Alert.alert('Camera Error', error?.message || 'An error occurred while taking a photo.');
     }
   };
 
@@ -739,18 +746,17 @@ export default function NavigationScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        mediaTypes: ['images'],
+        allowsEditing: false, // Disabling editing to prevent Android OOM and crop intent errors
+        quality: 0.5,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setPodImage(result.assets[0].uri);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Gallery error:', error);
-      Alert.alert('Error', 'An error occurred while choosing a photo.');
+      Alert.alert('Gallery Error', error?.message || 'An error occurred while choosing a photo.');
     }
   };
 
@@ -1177,9 +1183,9 @@ export default function NavigationScreen() {
           <View style={{ marginBottom: 12 }}>
             {distanceToDestination !== null && (
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8, gap: 6 }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasArrived ? '#10B981' : '#EF4444' }} />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: hasArrived ? '#10B981' : '#EF4444' }}>
-                  {hasArrived ? 'Arrived at Destination' : `Not Arrived - ${Math.round(distanceToDestination)}m remaining`}
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasArrived ? '#10B981' : '#3B82F6' }} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: hasArrived ? '#10B981' : '#f63b3bff' }}>
+                  {hasArrived ? 'Arrived at Destination' : `En Route - ${Math.round(distanceToDestination)}m remaining`}
                 </Text>
               </View>
             )}

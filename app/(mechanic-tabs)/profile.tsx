@@ -19,9 +19,9 @@ import authService from '../../services/authService';
 
 const getApiBaseUrl = () => {
   if (Platform.OS === 'android') {
-    return `http://10.65.49.24:8000/api`;
+    return `https://consult-powwow-vexingly.ngrok-free.dev/api`;
   }
-  return 'http://localhost:8000/api';
+  return 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 };
 
 export default function MechanicProfileScreen() {
@@ -178,7 +178,7 @@ export default function MechanicProfileScreen() {
                   <ActivityIndicator size="large" color="#23423B" />
                 ) : userData?.profile_image ? (
                   <Image 
-                    source={{ uri: userData.profile_image.startsWith('http') ? userData.profile_image : `http://10.65.49.24:8000/storage/${userData.profile_image}` }} 
+                    source={{ uri: userData.profile_image && typeof userData.profile_image === 'string' && userData.profile_image.startsWith('http') ? userData.profile_image : `https://consult-powwow-vexingly.ngrok-free.dev/storage/${userData.profile_image}` }} 
                     style={styles.avatarImage} 
                   />
                 ) : (

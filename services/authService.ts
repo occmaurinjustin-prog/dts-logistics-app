@@ -12,10 +12,10 @@ const YOUR_COMPUTER_IP = '10.65.49.24'; // <-- For physical Android device
 const getApiBaseUrl = () => {
   if (Platform.OS === 'android') {
     // Physical Android device uses your computer's IP
-    return `http://10.65.49.24:8000/api`;
+    return `https://consult-powwow-vexingly.ngrok-free.dev/api`;
   }
   // iOS simulator and web can use localhost
-  return 'http://localhost:8000/api';
+  return 'https://consult-powwow-vexingly.ngrok-free.dev/api';
 };
 
 const API_BASE_URL = getApiBaseUrl(); // Change to your actual backend URL
