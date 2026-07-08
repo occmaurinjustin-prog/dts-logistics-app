@@ -125,8 +125,6 @@ export default function ProfileScreen() {
   };
 
   const menuItems = [
-    { icon: 'person-outline', label: 'Edit Profile', onPress: () => { } },
-    { icon: 'document-text-outline', label: 'Delivery History', onPress: () => { } },
     {
       icon: 'build-outline', label: 'Maintenance Reports', onPress: () => {
         console.log('Maintenance Reports clicked, navigating to dashboard');
@@ -145,7 +143,6 @@ export default function ProfileScreen() {
         router.push('/notifications');
       }
     },
-    { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => { } },
     {
       icon: 'alert-circle-outline', label: 'Emergency Rescue', onPress: () => {
         router.push('/rescue-request');
@@ -328,26 +325,17 @@ export default function ProfileScreen() {
                   </View>
                   <View style={styles.menuItemContent}>
                     <Text style={styles.menuItemText}>{item.label}</Text>
-                    {item.label === 'Delivery History' && (
-                      <Text style={styles.menuItemSubtitle}>View past deliveries</Text>
-                    )}
                     {item.label === 'Maintenance Reports' && (
                       <Text style={styles.menuItemSubtitle}>Track maintenance requests</Text>
                     )}
                     {item.label === 'Notifications' && (
                       <Text style={styles.menuItemSubtitle}>Manage alerts</Text>
                     )}
-                    {item.label === 'Help & Support' && (
-                      <Text style={styles.menuItemSubtitle}>Get assistance</Text>
-                    )}
                     {item.label === 'Truck Information' && (
                       <Text style={styles.menuItemSubtitle}>View truck details</Text>
                     )}
                     {item.label === 'Settings' && (
                       <Text style={styles.menuItemSubtitle}>App preferences</Text>
-                    )}
-                    {item.label === 'Edit Profile' && (
-                      <Text style={styles.menuItemSubtitle}>Update personal info</Text>
                     )}
                     {item.label === 'Emergency Rescue' && (
                       <Text style={styles.menuItemSubtitle}>Request roadside assistance</Text>

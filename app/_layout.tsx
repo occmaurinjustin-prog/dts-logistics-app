@@ -11,6 +11,7 @@ const queryClient = new QueryClient();
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import authService from '@/services/authService';
+import { AppAlertUI } from '@/components/AppAlert';
 
 export const unstable_settings = {
   anchor: 'login',
@@ -120,6 +121,7 @@ export default function RootLayout() {
           <Stack.Screen name="rescue-mission" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
+        <AppAlertUI />
         <StatusBar style="auto" />
       </ThemeProvider>
     </QueryClientProvider>

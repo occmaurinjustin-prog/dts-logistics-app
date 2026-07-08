@@ -356,8 +356,45 @@ const generateMapHTML = (
           const gpsActive = isGpsEnabled !== undefined ? isGpsEnabled : true;
 
           if (driverMarker) {
-            driverMarker.setLatLng([lat, lng]);
+            // Cancel previous animation if any
+            if (window.markerAnimation) cancelAnimationFrame(window.markerAnimation);
+            
+            const startLatLng = driverMarker.getLatLng();
+            const startLat = startLatLng.lat;
+            const startLng = startLatLng.lng;
+            const endLat = lat;
+            const endLng = lng;
+            
+            const movedDistance = Math.abs(startLat - endLat) + Math.abs(startLng - endLng);
+            
+            // Update rotation and color immediately
             driverMarker.setIcon(createDriverIcon(driverHeading, gpsActive));
+            
+            // If moved distance is small enough, animate it smoothly
+            if (movedDistance > 0.00001 && movedDistance < 0.1) {
+              const duration = 1000; // 1 second transition
+              const startTime = performance.now();
+              
+              const animate = function(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+                const easeProgress = progress * (2 - progress); // Ease out quad
+                
+                const currentLat = startLat + (endLat - startLat) * easeProgress;
+                const currentLng = startLng + (endLng - startLng) * easeProgress;
+                
+                driverMarker.setLatLng([currentLat, currentLng]);
+                
+                if (progress < 1) {
+                  window.markerAnimation = requestAnimationFrame(animate);
+                }
+              };
+              
+              window.markerAnimation = requestAnimationFrame(animate);
+            } else {
+              // Snap if jumped too far (or didn't move at all)
+              driverMarker.setLatLng([endLat, endLng]);
+            }
           } else {
             driverMarker = L.marker([lat, lng], {
               icon: createDriverIcon(driverHeading, gpsActive),
@@ -415,12 +452,12 @@ const generateMapHTML = (
       // Zoom controls with smooth animation
       window.zoomIn = function() {
         if (map && typeof map.zoomIn === 'function') {
-          map.zoomIn({ animate: true, duration: 0.5 });
+          map.zoomIn(1, { animate: true, duration: 0.5 });
         }
       };
       window.zoomOut = function() {
         if (map && typeof map.zoomOut === 'function') {
-          map.zoomOut({ animate: true, duration: 0.5 });
+          map.zoomOut(1, { animate: true, duration: 0.5 });
         }
       };
 
@@ -476,8 +513,8 @@ export default function ExpoGoMap({
   
   // Generate HTML only when stops, navigation phase, or location actually changes
   useEffect(() => {
-    // Only regenerate HTML if stops, navigation phase, isNavigating, or currentLocation changed
-    const stopsChanged = JSON.stringify(stopsRef.current) !== JSON.stringify(stops);
+    // Only regenerate HTML if stops (IDs/coords), navigation phase, isNavigating, or currentLocation changed
+    const stopsChanged = JSON.stringify(stopsRef.current?.map(s => s.id + '-' + s.latitude + '-' + s.longitude)) !== JSON.stringify(stops?.map(s => s.id + '-' + s.latitude + '-' + s.longitude));
     const phaseChanged = navPhaseRef.current !== navigationPhase;
     const navChanged = isNavigatingRef.current !== isNavigating;
     const locationChanged = !prevCurrentLocationRef.current && currentLocation;

@@ -15,6 +15,7 @@ import {
     TextInput,
     TouchableOpacity,
     View,
+    Image,
 } from 'react-native';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1200';
@@ -126,7 +127,11 @@ export default function LoginScreen() {
           
           <View style={s.headerWrap}>
             <View style={s.logoWrap}>
-              <Ionicons name="cube" size={42} color="#10B981" />
+              <Image 
+                source={require('../assets/images/dtslogo.png')} 
+                style={{ width: '100%', height: '100%' }} 
+                resizeMode="cover"
+              />
             </View>
             <Text style={s.brandTitle}>DTS Fleet</Text>
             <Text style={s.brandSubtitle}>Intelligent Logistics Management</Text>
@@ -229,7 +234,7 @@ const s = StyleSheet.create({
   scrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24 },
 
   headerWrap: { alignItems: 'center', marginBottom: 40, marginTop: Platform.OS === 'ios' ? 40 : 20 },
-  logoWrap: { width: 80, height: 80, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  logoWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' },
   brandTitle: { fontSize: 32, fontWeight: '800', color: '#FFFFFF', letterSpacing: 1 },
   brandSubtitle: { fontSize: 14, color: '#94A3B8', fontWeight: '500', marginTop: 4, letterSpacing: 0.5 },
 

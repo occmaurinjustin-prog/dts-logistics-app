@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -41,7 +42,7 @@ export default function ChangePassword() {
         try {
             const response = await authService.changePassword(password, confirmPassword);
             if (response.success) {
-                Alert.alert('Success', 'Password changed successfully', [
+                AppAlert.alert('Success', 'Password changed successfully', [
                     { text: 'OK', onPress: () => isForced ? router.replace('/') : router.back() }
                 ]);
             } else {

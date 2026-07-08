@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Stack } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -52,7 +53,7 @@ export default function RescueHistoryScreen() {
       setHistory(data.data || []);
     } catch (error) {
       console.error('Error fetching rescue history:', error);
-      Alert.alert('Error', 'Failed to load rescue history');
+      AppAlert.alert('Error', 'Failed to load rescue history');
     } finally {
       setLoading(false);
     }

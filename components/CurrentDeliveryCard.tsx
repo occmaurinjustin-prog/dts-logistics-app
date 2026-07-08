@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -26,7 +27,7 @@ export default function CurrentDeliveryCard({ driver, onComplete }: CurrentDeliv
   };
 
   const handleComplete = () => {
-    Alert.alert(
+    AppAlert.alert(
       'Complete Delivery',
       'Have you completed this delivery?',
       [

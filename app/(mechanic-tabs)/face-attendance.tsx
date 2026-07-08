@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, Image, Platform, Animated } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -123,7 +124,7 @@ export default function FaceAttendanceScreen() {
         setPhoto(photoData);
       } catch (error) {
         console.error('Failed to take picture', error);
-        Alert.alert('Error', 'Failed to take picture');
+        AppAlert.alert('Error', 'Failed to take picture');
       }
     }
   };
@@ -145,7 +146,7 @@ export default function FaceAttendanceScreen() {
       try {
           let { status } = await Location.requestForegroundPermissionsAsync();
           if (status !== 'granted') {
-              Alert.alert('Permission Denied', 'GPS permission is required for attendance.');
+              AppAlert.alert('Permission Denied', 'GPS permission is required for attendance.');
               throw new Error('GPS permission denied');
           }
           location = await Location.getCurrentPositionAsync({});

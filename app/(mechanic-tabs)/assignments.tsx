@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -93,7 +94,7 @@ export default function MechanicAssignmentsScreen() {
       setAssignments(allAssignments);
     } catch (error) {
       console.error('Error fetching assignments:', error);
-      Alert.alert('Error', 'Failed to load assignments');
+      AppAlert.alert('Error', 'Failed to load assignments');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -125,14 +126,14 @@ export default function MechanicAssignmentsScreen() {
       const data = await response.json();
       
       if (data.success) {
-        Alert.alert('Success', data.message);
+        AppAlert.alert('Success', data.message);
         fetchAssignments(); // Refresh the list
       } else {
-        Alert.alert('Error', data.message || 'Failed to update status');
+        AppAlert.alert('Error', data.message || 'Failed to update status');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      Alert.alert('Error', 'Failed to update status');
+      AppAlert.alert('Error', 'Failed to update status');
     }
   };
 
@@ -314,7 +315,7 @@ export default function MechanicAssignmentsScreen() {
                   key={`maint-${assignment.id}`}
                   style={styles.assignmentCard}
                   activeOpacity={0.7}
-                  onLongPress={() => Alert.alert(
+                  onLongPress={() => AppAlert.alert(
                     'Quick Info', 
                     `Issue: ${assignment.issue_title || 'N/A'}\nPriority: ${(assignment.priority_level || 'low').toUpperCase()}\nStatus: ${getStatusText(assignment.status)}`
                   )}
@@ -381,7 +382,7 @@ export default function MechanicAssignmentsScreen() {
                         {/* Tooltip Icon */}
                         <TouchableOpacity 
                           style={styles.tooltipIcon}
-                          onPress={() => Alert.alert(
+                          onPress={() => AppAlert.alert(
                             'Assignment Details', 
                             `Title: ${assignment.issue_title || 'N/A'}\nStart Date: ${formatDate(assignment.repair_date)}\nTime: ${assignment.repair_time || 'N/A'}\nLocation: ${assignment.repair_location || 'N/A'}\nStatus: ${getStatusText(assignment.status)}\nPriority: ${(assignment.priority_level || 'low').toUpperCase()}`
                           )}

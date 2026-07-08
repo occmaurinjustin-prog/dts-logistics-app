@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import authService from '@/services/authService';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
@@ -82,7 +83,7 @@ export default function NotificationsScreen() {
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      Alert.alert('Error', 'Failed to load notifications');
+      AppAlert.alert('Error', 'Failed to load notifications');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -109,7 +110,7 @@ export default function NotificationsScreen() {
   };
 
   const deleteNotification = (notificationId: string) => {
-    Alert.alert(
+    AppAlert.alert(
       'Delete Notification',
       'Are you sure you want to delete this notification?',
       [

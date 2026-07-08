@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
@@ -47,7 +48,7 @@ export default function RescueRequestScreen() {
     const getLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Allow location access to request rescue.');
+            AppAlert.alert('Permission Denied', 'Allow location access to request rescue.');
             return;
         }
         let loc = await Location.getCurrentPositionAsync({});
@@ -68,11 +69,11 @@ export default function RescueRequestScreen() {
 
     const submitRequest = async () => {
         if (!issueCategory) {
-            Alert.alert('Validation Error', 'Please select an issue category.');
+            AppAlert.alert('Validation Error', 'Please select an issue category.');
             return;
         }
         if (!location) {
-            Alert.alert('Location Error', 'Still fetching your location. Please try again in a moment.');
+            AppAlert.alert('Location Error', 'Still fetching your location. Please try again in a moment.');
             return;
         }
 
@@ -103,14 +104,14 @@ export default function RescueRequestScreen() {
 
             const data = await response.json();
             if (response.ok) {
-                Alert.alert('Success', 'Rescue request sent successfully.');
+                AppAlert.alert('Success', 'Rescue request sent successfully.');
                 setActiveRescue(data.data);
             } else {
-                Alert.alert('Error', data.message || 'Failed to submit request.');
+                AppAlert.alert('Error', data.message || 'Failed to submit request.');
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'An error occurred while submitting.');
+            AppAlert.alert('Error', 'An error occurred while submitting.');
         } finally {
             setSubmitting(false);
         }

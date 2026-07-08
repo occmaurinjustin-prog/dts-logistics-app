@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -173,7 +174,7 @@ export default function DashboardScreen() {
 
   const handleDriverStatusPress = () => {
     if (driverService.isDriverBusy(driverProfile?.status)) {
-      Alert.alert(
+      AppAlert.alert(
         'Driver Status: Busy',
         'You are currently in transit and cannot accept new deliveries. Complete your current delivery first.',
         [{ text: 'OK' }]

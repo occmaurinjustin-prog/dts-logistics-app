@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -73,7 +74,7 @@ export default function MechanicProfileScreen() {
         await uploadImage(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick image');
+      AppAlert.alert('Error', 'Failed to pick image');
       console.error(error);
     }
   };
@@ -107,14 +108,14 @@ export default function MechanicProfileScreen() {
       const data = await response.json();
       
       if (data.success) {
-        Alert.alert('Success', 'Profile image updated!');
+        AppAlert.alert('Success', 'Profile image updated!');
         setUserData(data.user);
         await authService.saveUserData(data.user);
       } else {
-        Alert.alert('Error', data.message || 'Failed to upload image');
+        AppAlert.alert('Error', data.message || 'Failed to upload image');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to upload image. Please try again.');
+      AppAlert.alert('Error', 'Failed to upload image. Please try again.');
       console.error(error);
     } finally {
       setIsUploading(false);
@@ -122,7 +123,7 @@ export default function MechanicProfileScreen() {
   };
 
   const removeProfileImage = async () => {
-    Alert.alert(
+    AppAlert.alert(
       'Remove Photo',
       'Are you sure you want to remove your profile photo?',
       [
@@ -144,14 +145,14 @@ export default function MechanicProfileScreen() {
               
               const data = await response.json();
               if (data.success) {
-                Alert.alert('Success', 'Profile image removed!');
+                AppAlert.alert('Success', 'Profile image removed!');
                 setUserData(data.user);
                 await authService.saveUserData(data.user);
               } else {
-                Alert.alert('Error', data.message || 'Failed to remove image');
+                AppAlert.alert('Error', data.message || 'Failed to remove image');
               }
             } catch (error) {
-              Alert.alert('Error', 'Failed to remove image');
+              AppAlert.alert('Error', 'Failed to remove image');
             } finally {
               setIsUploading(false);
             }
@@ -202,6 +203,13 @@ export default function MechanicProfileScreen() {
           </View>
 
           <View style={styles.actionsSection}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/attendance-history')}>
+              <Ionicons name="time-outline" size={24} color="#0F6B5A" />
+              <Text style={[styles.actionButtonText, { color: '#0F6B5A' }]}>Attendance History</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.divider} />
+
             <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/change-password')}>
               <Ionicons name="lock-closed-outline" size={24} color="#6F8B84" />
               <Text style={[styles.actionButtonText, { color: '#6F8B84' }]}>Change Password</Text>

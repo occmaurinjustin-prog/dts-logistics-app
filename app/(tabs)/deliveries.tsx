@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import authService from '@/services/authService';
 import driverService, { DriverProfile } from '@/services/driverService';
 import { Ionicons } from '@expo/vector-icons';
@@ -197,7 +198,7 @@ export default function DeliveriesScreen() {
       // Network error (no response from server)
       if (!error.response) {
         console.error('Network error - no response from server');
-        Alert.alert(
+        AppAlert.alert(
           'Network Error', 
           'Cannot connect to server. Please check:\n\n1. Is your Laravel backend running?\n2. Is your phone on the same WiFi as your computer?\n3. Check API URL in authService.ts\n\nRun: php artisan serve --host=0.0.0.0',
           [{ text: 'OK' }]
@@ -207,7 +208,7 @@ export default function DeliveriesScreen() {
         // Check what token we have
         const currentToken = await AsyncStorage.getItem('authToken');
         console.log('Current token (first 50 chars):', currentToken?.substring(0, 50));
-        Alert.alert(
+        AppAlert.alert(
           'Session Expired', 
           'Your login session is invalid. Please clear storage and login again.',
           [
@@ -230,14 +231,14 @@ export default function DeliveriesScreen() {
         // Server error - show the error message
         const serverMessage = error.response?.data?.message || 'Server error. Please check if the backend is running properly.';
         console.error('Server error:', serverMessage);
-        Alert.alert(
+        AppAlert.alert(
           'Server Error', 
           serverMessage,
           [{ text: 'OK' }]
         );
       } else {
         // Other errors
-        Alert.alert(
+        AppAlert.alert(
           'Error', 
           `Failed to load deliveries. Status: ${error.response?.status || 'Unknown'}`,
           [{ text: 'OK' }]
@@ -307,7 +308,7 @@ export default function DeliveriesScreen() {
     try {
       const token = await AsyncStorage.getItem('authToken');
       if (!token) {
-        Alert.alert('Error', 'Not authenticated');
+        AppAlert.alert('Error', 'Not authenticated');
         return;
       }
 
@@ -327,14 +328,14 @@ export default function DeliveriesScreen() {
       );
 
       if (response.data.success) {
-        Alert.alert('Success', 'Delivery started! Navigate to pickup location.');
+        AppAlert.alert('Success', 'Delivery started! Navigate to pickup location.');
         fetchDeliveries();
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to start delivery');
+        AppAlert.alert('Error', response.data.message || 'Failed to start delivery');
       }
     } catch (error: any) {
       console.error('Error starting delivery:', error);
-      Alert.alert('Error', error.response?.data?.message || 'Failed to start delivery');
+      AppAlert.alert('Error', error.response?.data?.message || 'Failed to start delivery');
     } finally {
       setStartingDeliveryId(null);
     }
@@ -348,7 +349,7 @@ export default function DeliveriesScreen() {
 
     // Check if driver is busy
     if (driverService.isDriverBusy(driverProfile?.status)) {
-      Alert.alert(
+      AppAlert.alert(
         'Driver Busy',
         `You are currently ${driverService.getStatusDisplay(driverProfile?.status)} and cannot start a new delivery. Please complete your current delivery first.`,
         [
@@ -367,7 +368,7 @@ export default function DeliveriesScreen() {
     if (!canStart) {
       const msg = `Cannot start: Status is "${delivery.status}". Only Assigned or Approved can be started.`;
       console.log(msg);
-      Alert.alert('Cannot Start', msg);
+      AppAlert.alert('Cannot Start', msg);
       setStartingDeliveryId(null);
       return;
     }
@@ -388,7 +389,7 @@ export default function DeliveriesScreen() {
     } else {
       // For mobile, use Alert.alert
       // After API call finishes, clear the loading flag
-      Alert.alert(
+      AppAlert.alert(
         'Start Delivery',
         confirmMsg,
         [
@@ -567,7 +568,7 @@ export default function DeliveriesScreen() {
                 onPress={async () => {
                   await AsyncStorage.clear();
                   await authService.clearStorage();
-                  Alert.alert('Storage Cleared', 'Redirecting to login...');
+                  AppAlert.alert('Storage Cleared', 'Redirecting to login...');
                   setIsAuthenticated(false);
                   if (typeof window !== 'undefined') {
                     window.location.href = '/login';
@@ -581,7 +582,7 @@ export default function DeliveriesScreen() {
                 onPress={async () => {
                   await authService.debugStorage();
                   const token = await AsyncStorage.getItem('authToken');
-                  Alert.alert('Debug Info', `Token exists: ${!!token}\nToken start: ${token?.substring(0, 20) || 'none'}...`);
+                  AppAlert.alert('Debug Info', `Token exists: ${!!token}\nToken start: ${token?.substring(0, 20) || 'none'}...`);
                 }}
               >
                 <Text style={styles.loginButtonText}>Debug Storage</Text>

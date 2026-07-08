@@ -97,6 +97,14 @@ export default function MechanicTabLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="attendance-history"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

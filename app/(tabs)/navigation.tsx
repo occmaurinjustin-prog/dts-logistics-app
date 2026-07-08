@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -424,7 +425,7 @@ export default function NavigationScreen() {
     try {
       const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
       if (foregroundStatus !== 'granted') {
-        Alert.alert('Permission Required', 'GPS permission is needed for navigation.');
+        AppAlert.alert('Permission Required', 'GPS permission is needed for navigation.');
         return;
       }
 
@@ -433,7 +434,7 @@ export default function NavigationScreen() {
       setGpsEnabled(enabled);
 
       if (!enabled) {
-        Alert.alert('GPS Disabled', 'Please enable GPS location services on your phone.');
+        AppAlert.alert('GPS Disabled', 'Please enable GPS location services on your phone.');
         return;
       }
 
@@ -595,7 +596,7 @@ export default function NavigationScreen() {
 
     } catch (error) {
       console.error('GPS Error:', error);
-      Alert.alert('GPS Error', 'Unable to start GPS tracking.');
+      AppAlert.alert('GPS Error', 'Unable to start GPS tracking.');
     }
   };
 
@@ -718,7 +719,7 @@ export default function NavigationScreen() {
     try {
       const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
       if (cameraPermission.status !== 'granted') {
-        Alert.alert('Permission Required', 'We need access to your camera to take a proof of delivery photo.');
+        AppAlert.alert('Permission Required', 'We need access to your camera to take a proof of delivery photo.');
         return;
       }
 
@@ -733,7 +734,7 @@ export default function NavigationScreen() {
       }
     } catch (error: any) {
       console.error('Camera error:', error);
-      Alert.alert('Camera Error', error?.message || 'An error occurred while taking a photo.');
+      AppAlert.alert('Camera Error', error?.message || 'An error occurred while taking a photo.');
     }
   };
 
@@ -741,7 +742,7 @@ export default function NavigationScreen() {
     try {
       const galleryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (galleryPermission.status !== 'granted') {
-        Alert.alert('Permission Required', 'We need access to your library to choose a proof of delivery photo.');
+        AppAlert.alert('Permission Required', 'We need access to your library to choose a proof of delivery photo.');
         return;
       }
 
@@ -756,19 +757,19 @@ export default function NavigationScreen() {
       }
     } catch (error: any) {
       console.error('Gallery error:', error);
-      Alert.alert('Gallery Error', error?.message || 'An error occurred while choosing a photo.');
+      AppAlert.alert('Gallery Error', error?.message || 'An error occurred while choosing a photo.');
     }
   };
 
   // Submit Proof of Delivery & mark delivery as completed
   const handleFinalConfirmDelivery = async () => {
     if (!currentStop) {
-      Alert.alert('Error', 'No active stop found.');
+      AppAlert.alert('Error', 'No active stop found.');
       return;
     }
 
     if (!podImage) {
-      Alert.alert('Upload Required', 'Please upload proof of delivery before confirming.');
+      AppAlert.alert('Upload Required', 'Please upload proof of delivery before confirming.');
       return;
     }
 
@@ -827,7 +828,7 @@ export default function NavigationScreen() {
           // Reset to pickup phase for next delivery
           setNavigationPhase('pickup');
 
-          Alert.alert(
+          AppAlert.alert(
             '✅ Delivery Complete',
             'Moving to next delivery!',
             [{ text: 'OK' }]
@@ -838,7 +839,7 @@ export default function NavigationScreen() {
           setIsNavigating(false);
 
           // Refresh data to check for new deliveries
-          Alert.alert(
+          AppAlert.alert(
             '🎉 All Deliveries Complete!',
             'Great job! You have completed all deliveries.\n\nChecking for new assignments...',
             [{
@@ -856,13 +857,13 @@ export default function NavigationScreen() {
           }, 3000);
         }
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to submit proof. Please try again.');
+        AppAlert.alert('Error', response.data.message || 'Failed to submit proof. Please try again.');
         setIsUploading(false);
       }
     } catch (error: any) {
       console.error('POD submit error:', error);
       const errorMsg = error.response?.data?.message || 'Failed to upload proof of delivery. Please try again.';
-      Alert.alert('Submission Failed', errorMsg);
+      AppAlert.alert('Submission Failed', errorMsg);
       setIsUploading(false);
     }
   };
@@ -870,13 +871,13 @@ export default function NavigationScreen() {
   // Complete current step and update delivery status with phase management
   const handleCompleteStep = async () => {
     if (!currentStop || deliveries.length === 0) {
-      Alert.alert('Error', 'No active stop or delivery found.');
+      AppAlert.alert('Error', 'No active stop or delivery found.');
       return;
     }
 
     // Strict Arrival Validation
     if (distanceToDestination !== null && distanceToDestination > ARRIVAL_RADIUS) {
-      Alert.alert(
+      AppAlert.alert(
         "Not Yet Arrived",
         `You must arrive at the destination before confirming.\n\nYou are currently ${Math.round(distanceToDestination)} meters away.`
       );
@@ -888,7 +889,7 @@ export default function NavigationScreen() {
       const currentStopInDelivery = currentDelivery?.find(s => s.id === currentStop.id);
 
       if (!currentStopInDelivery) {
-        Alert.alert('Error', 'Could not find the current stop in delivery.');
+        AppAlert.alert('Error', 'Could not find the current stop in delivery.');
         return;
       }
 
@@ -914,7 +915,7 @@ export default function NavigationScreen() {
         setLiveDistance(null);
         setLiveDuration(null);
 
-        Alert.alert(
+        AppAlert.alert(
           '✅ Pickup Complete',
           'Item picked up! Now navigate to delivery location.',
           [{ text: 'OK' }]
@@ -927,7 +928,7 @@ export default function NavigationScreen() {
       }
     } catch (error) {
       console.error('Failed to complete step:', error);
-      Alert.alert('Error', 'Failed to update status. Please try again.');
+      AppAlert.alert('Error', 'Failed to update status. Please try again.');
     }
   };
 
@@ -1045,9 +1046,6 @@ export default function NavigationScreen() {
             {isNavigating ? `ETA ${liveDuration || currentStop?.duration || '10 min'}` : 'Ready'}
           </Text>
         </View>
-        <TouchableOpacity style={styles.headerVoiceButton}>
-          <Ionicons name="volume-high" size={22} color="#16A34A" />
-        </TouchableOpacity>
       </View>
 
       {/* Full-Width Map with Overlay Cards */}
@@ -1089,11 +1087,6 @@ export default function NavigationScreen() {
             <Ionicons name="chevron-forward" size={24} color="#94A3B8" />
           </View>
         </View>
-
-        {/* Floating Voice Toggle Button */}
-        <TouchableOpacity style={styles.voiceFab}>
-          <Ionicons name={isNavigating ? "volume-high" : "volume-mute"} size={22} color="#FFFFFF" />
-        </TouchableOpacity>
       </View>
 
       {/* Bottom Sheet - Progress & Controls */}

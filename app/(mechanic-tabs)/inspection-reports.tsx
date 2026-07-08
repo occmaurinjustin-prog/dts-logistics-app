@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -92,7 +93,7 @@ export default function InspectionReportsScreen() {
       }
     } catch (error) {
       console.error('Error fetching inspection reports:', error);
-      Alert.alert('Error', 'Failed to load inspection reports');
+      AppAlert.alert('Error', 'Failed to load inspection reports');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -127,28 +128,28 @@ export default function InspectionReportsScreen() {
       }
     } catch (error) {
       console.error('Error fetching trucks:', error);
-      Alert.alert('Error', 'Failed to load trucks');
+      AppAlert.alert('Error', 'Failed to load trucks');
     }
   };
 
   const handleSubmit = async () => {
     if (!selectedTruck) {
-      Alert.alert('Error', 'Please select a truck');
+      AppAlert.alert('Error', 'Please select a truck');
       return;
     }
 
     if (!inspectionDate) {
-      Alert.alert('Error', 'Please select inspection date');
+      AppAlert.alert('Error', 'Please select inspection date');
       return;
     }
 
     if (!overallCondition) {
-      Alert.alert('Error', 'Please select overall condition');
+      AppAlert.alert('Error', 'Please select overall condition');
       return;
     }
 
     if (overallCondition !== 'good' && (!issueTitle.trim() || !issueDescription.trim())) {
-      Alert.alert('Error', `Please provide an issue title and description for a '${overallCondition}' condition.`);
+      AppAlert.alert('Error', `Please provide an issue title and description for a '${overallCondition}' condition.`);
       return;
     }
 
@@ -180,7 +181,7 @@ export default function InspectionReportsScreen() {
       const data = await response.json();
       
       if (data.success) {
-        Alert.alert('Success', 'Inspection report submitted successfully');
+        AppAlert.alert('Success', 'Inspection report submitted successfully');
         setShowFormModal(false);
         // Reset form
         setSelectedTruck(null);
@@ -191,11 +192,11 @@ export default function InspectionReportsScreen() {
         setIssueDescription('');
         fetchReports();
       } else {
-        Alert.alert('Error', data.message || 'Failed to submit inspection report');
+        AppAlert.alert('Error', data.message || 'Failed to submit inspection report');
       }
     } catch (error) {
       console.error('Error submitting inspection report:', error);
-      Alert.alert('Error', 'Failed to submit inspection report');
+      AppAlert.alert('Error', 'Failed to submit inspection report');
     } finally {
       setFormLoading(false);
     }

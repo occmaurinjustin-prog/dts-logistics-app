@@ -1,3 +1,4 @@
+import { AppAlert } from '@/components/AppAlert';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
@@ -56,7 +57,7 @@ export default function RescueMissionScreen() {
     const startLocationTracking = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Allow location tracking to share your location with the office.');
+            AppAlert.alert('Permission Denied', 'Allow location tracking to share your location with the office.');
             return;
         }
 
@@ -112,18 +113,18 @@ export default function RescueMissionScreen() {
                 }
 
                 if (status === 'resolved') {
-                    Alert.alert('Success', 'Rescue marked as resolved.', [
+                    AppAlert.alert('Success', 'Rescue marked as resolved.', [
                         { text: 'OK', onPress: () => router.back() }
                     ]);
                 } else {
                     fetchRescueDetails();
                 }
             } else {
-                Alert.alert('Error', 'Failed to update status.');
+                AppAlert.alert('Error', 'Failed to update status.');
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Network request failed.');
+            AppAlert.alert('Error', 'Network request failed.');
         } finally {
             setUpdating(false);
         }
