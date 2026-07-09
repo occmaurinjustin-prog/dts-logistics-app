@@ -53,15 +53,26 @@ class DriverService {
     },
   });
 
+  // Separate short-timeout instance just for location updates
+  private locationApi = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    timeout: 5000, // 5 seconds — fail fast so offline queue kicks in quickly
+  });
+
   constructor() {
     // Add auth token to requests
-    this.api.interceptors.request.use(async (config) => {
+    const addAuthToken = async (config: any) => {
       const token = await AsyncStorage.getItem('authToken');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
-    });
+    };
+    this.api.interceptors.request.use(addAuthToken);
+    this.locationApi.interceptors.request.use(addAuthToken);
   }
 
   /**
@@ -186,7 +197,8 @@ class DriverService {
     };
 
     try {
-      const response = await this.api.post('/driver/location', {
+      // Use the short-timeout locationApi so offline is detected within 5s
+      const response = await this.locationApi.post('/driver/location', {
         current_latitude:  point.latitude,
         current_longitude: point.longitude,
         current_speed:     point.speed,
@@ -200,7 +212,7 @@ class DriverService {
 
       return response.data.success ?? true;
     } catch (error) {
-      // ❌ No signal — save this point to the offline queue
+      // ❌ No signal or timeout — save this point to the offline queue
       console.warn('No signal — queuing location offline:', latitude, longitude);
       await this.queueOfflineLocation(point);
       return false;

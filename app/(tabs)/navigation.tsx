@@ -549,8 +549,13 @@ export default function NavigationScreen() {
           if (lastSentLocation.current) {
             const { latitude, longitude, speed, heading } = lastSentLocation.current.coords;
             driverService.updateLocation(latitude, longitude, speed || 0, heading || 0, enabled)
-              .then(() => {
-                console.log('Location sent to server:', latitude, longitude, 'gpsEnabled:', enabled);
+              .then(async (success) => {
+                const count = await driverService.getOfflineQueueCount();
+                if (success) {
+                  console.log('✅ Location sent to server:', latitude, longitude, '| Queue:', count);
+                } else {
+                  console.warn('📦 Location QUEUED OFFLINE:', latitude, longitude, '| Total queued:', count);
+                }
               })
               .catch((err: Error) => {
                 console.error('Failed to send location:', err);
