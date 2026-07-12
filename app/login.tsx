@@ -126,13 +126,7 @@ export default function LoginScreen() {
         >
           
           <View style={s.headerWrap}>
-            <View style={s.logoWrap}>
-              <Image 
-                source={require('../assets/images/dtslogo.png')} 
-                style={{ width: '100%', height: '100%' }} 
-                resizeMode="cover"
-              />
-            </View>
+
             <Text style={s.brandTitle}>DTS Fleet</Text>
             <Text style={s.brandSubtitle}>Intelligent Logistics Management</Text>
           </View>

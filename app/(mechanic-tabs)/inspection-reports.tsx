@@ -40,6 +40,13 @@ interface Truck {
   plate_number: string;
   unique_id: string;
   vehicle_type: string;
+  current_inspection_mechanic_id?: number | null;
+  current_inspecting_mechanic?: {
+    user_id: number;
+    firstname: string;
+    lastname: string;
+  } | null;
+  next_inspection_date?: string | null;
 }
 
 export default function InspectionReportsScreen() {
@@ -376,22 +383,40 @@ export default function InspectionReportsScreen() {
                 <View style={styles.modalSection}>
                   <Text style={styles.modalSectionTitle}>Select Truck</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.truckList}>
-                    {trucks.map((truck) => (
-                      <TouchableOpacity
-                        key={truck.truck_id}
-                        style={[
-                          styles.truckCard,
-                          selectedTruck?.truck_id === truck.truck_id && styles.truckCardSelected,
-                        ]}
-                        onPress={() => setSelectedTruck(truck)}
-                      >
-                        <View style={styles.uniqueIdBadge}>
-                          <Text style={styles.uniqueIdText}>{truck.unique_id}</Text>
-                        </View>
-                        <Text style={styles.plateNumber}>{truck.plate_number}</Text>
-                        <Text style={styles.vehicleType}>{truck.vehicle_type}</Text>
-                      </TouchableOpacity>
-                    ))}
+                    {trucks.map((truck) => {
+                      const isLocked = truck.current_inspection_mechanic_id && truck.current_inspection_mechanic_id !== selectedTruck?.current_inspection_mechanic_id && selectedTruck?.truck_id !== truck.truck_id;
+                      return (
+                        <TouchableOpacity
+                          key={truck.truck_id}
+                          style={[
+                            styles.truckCard,
+                            selectedTruck?.truck_id === truck.truck_id && styles.truckCardSelected,
+                            isLocked && { opacity: 0.5, backgroundColor: '#F3F4F6' }
+                          ]}
+                          onPress={() => {
+                            if (isLocked) {
+                              AppAlert.alert('Locked', `This truck is currently being inspected by another mechanic.`);
+                            } else {
+                              setSelectedTruck(truck);
+                            }
+                          }}
+                        >
+                          <View style={styles.uniqueIdBadge}>
+                            <Text style={styles.uniqueIdText}>{truck.unique_id}</Text>
+                          </View>
+                          <Text style={styles.plateNumber}>{truck.plate_number}</Text>
+                          <Text style={styles.vehicleType}>{truck.vehicle_type}</Text>
+                          {isLocked && (
+                            <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 4}}>
+                              <Ionicons name="lock-closed" size={12} color="#EF4444" />
+                              <Text style={{fontSize: 10, color: '#EF4444', marginLeft: 4}}>
+                                In progress ({truck.current_inspecting_mechanic?.firstname || 'Mechanic'})
+                              </Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
                   </ScrollView>
                 </View>
 

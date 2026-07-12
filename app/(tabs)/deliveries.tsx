@@ -47,6 +47,7 @@ export default function DeliveriesScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [expandedDeliveryId, setExpandedDeliveryId] = useState<string | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [driverProfile, setDriverProfile] = useState<DriverProfile | null>(null);
 
@@ -258,13 +259,13 @@ export default function DeliveriesScreen() {
   // Auto-refresh every 5 seconds for real-time updates on active tab
   useEffect(() => {
     const interval = setInterval(() => {
-      if (selectedTab === 'active') {
+      if (selectedTab === 'active' && isAuthenticated !== false) {
         fetchDeliveries(false);
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [fetchDeliveries, selectedTab]);
+  }, [fetchDeliveries, selectedTab, isAuthenticated]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -441,8 +442,22 @@ export default function DeliveriesScreen() {
     });
   };
 
-  const renderDeliveryCard = (delivery: any, index: number) => (
-    <View key={index} style={styles.deliveryCard}>
+  const renderDeliveryCard = (delivery: any, index: number) => {
+    const isCompletedTab = selectedTab === 'completed';
+    const uniqueId = delivery.originalData?.id?.toString() || delivery.waybill || index.toString();
+    const isExpanded = expandedDeliveryId === uniqueId;
+
+    const toggleExpand = () => {
+      setExpandedDeliveryId(isExpanded ? null : uniqueId);
+    };
+
+    return (
+    <TouchableOpacity 
+      key={uniqueId} 
+      style={styles.deliveryCard}
+      activeOpacity={isCompletedTab ? 0.7 : 1}
+      onPress={isCompletedTab ? toggleExpand : undefined}
+    >
       <View style={styles.deliveryHeader}>
         <View style={[styles.deliveryIcon, { backgroundColor: '#ECFDF5' }]}>
           <Ionicons name="cube" size={18} color="#10B981" />
@@ -479,7 +494,95 @@ export default function DeliveriesScreen() {
           </View>
         )}
       </View>
-      <View style={styles.buttonRow}>
+      
+      {/* Down Chevron for Completed Tab */}
+      {isCompletedTab && (
+        <View style={{ alignItems: 'center', marginTop: 8 }}>
+          <Ionicons name={isExpanded ? "chevron-up-outline" : "chevron-down-outline"} size={20} color="#94A3B8" />
+        </View>
+      )}
+
+      {/* Expanded Details for Completed Deliveries */}
+      {isCompletedTab && isExpanded && (
+        <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 16 }}>
+          <View style={styles.infoGrid}>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Client Partner</Text>
+              <Text style={styles.infoValue}>{delivery.client_name || delivery.customer}</Text>
+            </View>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Assigned Driver</Text>
+              <Text style={styles.infoValue}>{delivery.driver_name || delivery.driver || 'N/A'}</Text>
+            </View>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Cargo Weight</Text>
+              <Text style={styles.infoValue}>{delivery.weight || (delivery.originalData?.weight_tons ? delivery.originalData.weight_tons + ' tons' : 'N/A')}</Text>
+            </View>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Priority Level</Text>
+              <Text style={[styles.infoValue, { 
+                color: delivery.priority === 'HIGH' ? '#EF4444' : 
+                       delivery.priority === 'MEDIUM' ? '#F59E0B' : '#10B981'
+              }]}>
+                {delivery.priority || 'NORMAL'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.addressSection}>
+            <View style={styles.addressCard}>
+              <View style={styles.addressHeader}>
+                <Ionicons name="location-outline" size={16} color="#6366F1" />
+                <Text style={styles.addressLabel}>Pickup Location</Text>
+              </View>
+              <Text style={styles.addressText}>{delivery.originalData?.pickup_address || 'N/A'}</Text>
+            </View>
+            <View style={styles.addressArrow}>
+              <Ionicons name="arrow-down-outline" size={18} color="#94A3B8" />
+            </View>
+            <View style={styles.addressCard}>
+              <View style={styles.addressHeader}>
+                <Ionicons name="navigate-outline" size={16} color="#10B981" />
+                <Text style={styles.addressLabel}>Delivery Address</Text>
+              </View>
+              <Text style={styles.addressText}>{delivery.address}</Text>
+            </View>
+          </View>
+
+          <View style={styles.descriptionCard}>
+            <Text style={styles.descriptionLabel}>Item Description</Text>
+            <Text style={styles.descriptionText}>{delivery.originalData?.item_description || 'N/A'}</Text>
+          </View>
+
+          {delivery.status === 'Delivered' && delivery.podImage && (
+            <View style={styles.descriptionCard}>
+              <Text style={styles.descriptionLabel}>Proof of Delivery</Text>
+              {(() => {
+                const getAbsoluteUrl = (uri: string | undefined) => {
+                  if (!uri) return null;
+                  if (uri.startsWith('http://') || uri.startsWith('https://')) return uri;
+                  const API_BASE_URL = Platform.OS === 'web' ? 'https://consult-powwow-vexingly.ngrok-free.dev' : 'https://consult-powwow-vexingly.ngrok-free.dev';
+                  const cleanUri = uri.startsWith('/') ? uri.slice(1) : uri;
+                  return `${API_BASE_URL}/${cleanUri}`;
+                };
+                const imageUrl = getAbsoluteUrl(delivery.podImage);
+                return imageUrl ? (
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={{ width: '100%', height: 200, borderRadius: 8, marginTop: 8 }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text style={styles.emptyText}>Proof of Delivery image not available</Text>
+                );
+              })()}
+            </View>
+          )}
+        </View>
+      )}
+
+      {!isCompletedTab && (
+        <View style={styles.buttonRow}>
         <TouchableOpacity 
           style={[
             styles.startButton,
@@ -511,6 +614,7 @@ export default function DeliveriesScreen() {
           <Text style={styles.actionButtonText}>View Details</Text>
         </TouchableOpacity>
       </View>
+      )}
       
       {/* Show status badge on card for delivered items */}
       {delivery.status === 'Delivered' && (
@@ -518,8 +622,9 @@ export default function DeliveriesScreen() {
           <Text style={[styles.cardStatusText, { color: '#10B981' }]}>Completed</Text>
         </View>
       )}
-    </View>
-  );
+    </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -632,132 +737,129 @@ export default function DeliveriesScreen() {
         )}
       </SafeAreaView>
 
-      {/* Delivery Detail Modal */}
-      <Modal animationType="slide" transparent={true} visible={showDetailModal} onRequestClose={closeDetailModal}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <View style={styles.modalHeaderLeft}>
-                <View style={[styles.modalIcon, { backgroundColor: '#ECFDF5' }]}>
-                  <Ionicons name="cube" size={20} color="#10B981" />
+      {/* Delivery Detail Modal for Active Tab */}
+      {selectedTab === 'active' && (
+        <Modal animationType="slide" transparent={true} visible={showDetailModal} onRequestClose={closeDetailModal}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <View style={styles.modalHeaderLeft}>
+                  <View style={[styles.modalIcon, { backgroundColor: '#ECFDF5' }]}>
+                    <Ionicons name="cube" size={20} color="#10B981" />
+                  </View>
+                  <View>
+                    <Text style={styles.modalTitle}>Waybill #{selectedDelivery?.waybill}</Text>
+                    <Text style={styles.modalDate}>{formatDate(selectedDelivery?.created_at)}</Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={styles.modalTitle}>Waybill #{selectedDelivery?.waybill}</Text>
-                  <Text style={styles.modalDate}>{formatDate(selectedDelivery?.created_at)}</Text>
+                <View style={styles.modalHeaderRight}>
+                  {selectedDelivery?.status && (
+                    <View style={[styles.statusBadge, { 
+                      backgroundColor: selectedDelivery.status === 'Delivered' ? '#D1FAE5' : '#EFF6FF'
+                    }]}>
+                      <Text style={[styles.statusBadgeText, { 
+                        color: selectedDelivery.status === 'Delivered' ? '#10B981' : '#2563EB' 
+                      }]}>
+                        {selectedDelivery.status}
+                      </Text>
+                    </View>
+                  )}
+                  <TouchableOpacity onPress={closeDetailModal} style={styles.closeButton}>
+                    <Ionicons name="close-outline" size={20} color="#64748B" />
+                  </TouchableOpacity>
                 </View>
               </View>
-              <View style={styles.modalHeaderRight}>
-                {selectedDelivery?.status && (
-                  <View style={[styles.statusBadge, { 
-                    backgroundColor: selectedDelivery.status === 'Delivered' ? '#D1FAE5' : '#EFF6FF'
-                  }]}>
-                    <Text style={[styles.statusBadgeText, { 
-                      color: selectedDelivery.status === 'Delivered' ? '#10B981' : '#2563EB' 
+
+              <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+                {/* Info Grid */}
+                <View style={styles.infoGrid}>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>Client Partner</Text>
+                    <Text style={styles.infoValue}>{selectedDelivery?.client_name || selectedDelivery?.customer}</Text>
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>Assigned Driver</Text>
+                    <Text style={styles.infoValue}>{selectedDelivery?.driver_name || selectedDelivery?.driver}</Text>
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>Cargo Weight</Text>
+                    <Text style={styles.infoValue}>{selectedDelivery?.weight || selectedDelivery?.weight_tons + ' tons'}</Text>
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>Priority Level</Text>
+                    <Text style={[styles.infoValue, { 
+                      color: selectedDelivery?.priority === 'HIGH' ? '#EF4444' : 
+                             selectedDelivery?.priority === 'MEDIUM' ? '#F59E0B' : '#10B981'
                     }]}>
-                      {selectedDelivery.status}
+                      {selectedDelivery?.priority}
                     </Text>
                   </View>
-                )}
-                <TouchableOpacity onPress={closeDetailModal} style={styles.closeButton}>
-                  <Ionicons name="close-outline" size={20} color="#64748B" />
-                </TouchableOpacity>
-              </View>
-            </View>
+                </View>
 
-            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-              {/* Info Grid */}
-              <View style={styles.infoGrid}>
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Client Partner</Text>
-                  <Text style={styles.infoValue}>{selectedDelivery?.client_name || selectedDelivery?.customer}</Text>
+                {/* Addresses */}
+                <View style={styles.addressSection}>
+                  <View style={styles.addressCard}>
+                    <View style={styles.addressHeader}>
+                      <Ionicons name="location-outline" size={16} color="#6366F1" />
+                      <Text style={styles.addressLabel}>Pickup Location</Text>
+                    </View>
+                    <Text style={styles.addressText}>{selectedDelivery?.pickup_address}</Text>
+                  </View>
+
+                  <View style={styles.addressArrow}>
+                    <Ionicons name="arrow-down-outline" size={18} color="#94A3B8" />
+                  </View>
+
+                  <View style={styles.addressCard}>
+                    <View style={styles.addressHeader}>
+                      <Ionicons name="navigate-outline" size={16} color="#10B981" />
+                      <Text style={styles.addressLabel}>Delivery Address</Text>
+                    </View>
+                    <Text style={styles.addressText}>{selectedDelivery?.address}</Text>
+                  </View>
                 </View>
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Assigned Driver</Text>
-                  <Text style={styles.infoValue}>{selectedDelivery?.driver_name || selectedDelivery?.driver}</Text>
+
+                {/* Item Description */}
+                <View style={styles.descriptionCard}>
+                  <Text style={styles.descriptionLabel}>Item Description</Text>
+                  <Text style={styles.descriptionText}>{selectedDelivery?.item_description}</Text>
                 </View>
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Cargo Weight</Text>
-                  <Text style={styles.infoValue}>{selectedDelivery?.weight || selectedDelivery?.weight_tons + ' tons'}</Text>
-                </View>
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>Priority Level</Text>
-                  <Text style={[styles.infoValue, { 
-                    color: selectedDelivery?.priority === 'HIGH' ? '#EF4444' : 
-                           selectedDelivery?.priority === 'MEDIUM' ? '#F59E0B' : '#10B981'
-                  }]}>
-                    {selectedDelivery?.priority}
+
+                {/* Proof of Delivery Image */}
+                {selectedDelivery?.status === 'Delivered' && selectedDelivery?.podImage && (
+                  <View style={styles.descriptionCard}>
+                    <Text style={styles.descriptionLabel}>Proof of Delivery</Text>
+                    {(() => {
+                      const getAbsoluteUrl = (uri: string | undefined) => {
+                        if (!uri) return null;
+                        if (uri.startsWith('http://') || uri.startsWith('https://')) {
+                          return uri;
+                        }
+                        const API_BASE_URL = Platform.OS === 'web' ? 'https://consult-powwow-vexingly.ngrok-free.dev' : 'https://consult-powwow-vexingly.ngrok-free.dev';
+                        const cleanUri = uri.startsWith('/') ? uri.slice(1) : uri;
+                        return `${API_BASE_URL}/${cleanUri}`;
+                      };
+                      const imageUrl = getAbsoluteUrl(selectedDelivery?.podImage);
+                      return imageUrl ? (
+                        <Image
+                          source={{ uri: imageUrl }}
+                          style={{ width: '100%', height: 200, borderRadius: 8, marginTop: 8 }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Text style={styles.emptyText}>Proof of Delivery image not available</Text>
+                      );
+                    })()}
+                  </View>
+                )}
+
+                {/* Requested By */}
+                <View style={styles.requestedByContainer}>
+                  <Text style={styles.requestedByText}>
+                    Dispatched under authorization of: {selectedDelivery?.requested_by}
                   </Text>
                 </View>
-              </View>
-
-              {/* Addresses */}
-              <View style={styles.addressSection}>
-                <View style={styles.addressCard}>
-                  <View style={styles.addressHeader}>
-                    <Ionicons name="location-outline" size={16} color="#6366F1" />
-                    <Text style={styles.addressLabel}>Pickup Location</Text>
-                  </View>
-                  <Text style={styles.addressText}>{selectedDelivery?.pickup_address}</Text>
-                </View>
-
-                <View style={styles.addressArrow}>
-                  <Ionicons name="arrow-down-outline" size={18} color="#94A3B8" />
-                </View>
-
-                <View style={styles.addressCard}>
-                  <View style={styles.addressHeader}>
-                    <Ionicons name="navigate-outline" size={16} color="#10B981" />
-                    <Text style={styles.addressLabel}>Delivery Address</Text>
-                  </View>
-                  <Text style={styles.addressText}>{selectedDelivery?.address}</Text>
-                </View>
-              </View>
-
-              {/* Item Description */}
-              <View style={styles.descriptionCard}>
-                <Text style={styles.descriptionLabel}>Item Description</Text>
-                <Text style={styles.descriptionText}>{selectedDelivery?.item_description}</Text>
-              </View>
-
-              {/* Proof of Delivery Image */}
-              {selectedDelivery?.status === 'Delivered' && selectedDelivery?.podImage && (
-                <View style={styles.descriptionCard}>
-                  <Text style={styles.descriptionLabel}>Proof of Delivery</Text>
-                  {(() => {
-                    // Helper to ensure the image URI is absolute
-                    const getAbsoluteUrl = (uri: string | undefined) => {
-                      if (!uri) return null;
-                      // If already an absolute URL, return as is
-                      if (uri.startsWith('http://') || uri.startsWith('https://')) {
-                        return uri;
-                      }
-                      // Otherwise prepend the API base URL (adjust as needed)
-                      const API_BASE_URL = Platform.OS === 'web' ? 'https://consult-powwow-vexingly.ngrok-free.dev' : 'https://consult-powwow-vexingly.ngrok-free.dev';
-                      // Ensure no leading slash duplication
-                      const cleanUri = uri.startsWith('/') ? uri.slice(1) : uri;
-                      return `${API_BASE_URL}/${cleanUri}`;
-                    };
-                    const imageUrl = getAbsoluteUrl(selectedDelivery?.podImage);
-                    return imageUrl ? (
-                      <Image
-                        source={{ uri: imageUrl }}
-                        style={{ width: '100%', height: 200, borderRadius: 8, marginTop: 8 }}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <Text style={styles.emptyText}>Proof of Delivery image not available</Text>
-                    );
-                  })()}
-                </View>
-              )}
-
-              {/* Requested By */}
-              <View style={styles.requestedByContainer}>
-                <Text style={styles.requestedByText}>
-                  Dispatched under authorization of: {selectedDelivery?.requested_by}
-                </Text>
-              </View>
             </ScrollView>
 
             {/* Modal Footer */}
@@ -769,6 +871,7 @@ export default function DeliveriesScreen() {
           </View>
         </View>
       </Modal>
+      )}
     </View>
   );
   } catch (error: any) {

@@ -210,6 +210,13 @@ export default function MechanicProfileScreen() {
             
             <View style={styles.divider} />
 
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/part-requests')}>
+              <Ionicons name="construct-outline" size={24} color="#0F6B5A" />
+              <Text style={[styles.actionButtonText, { color: '#0F6B5A' }]}>Request Parts</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.divider} />
+
             <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/change-password')}>
               <Ionicons name="lock-closed-outline" size={24} color="#6F8B84" />
               <Text style={[styles.actionButtonText, { color: '#6F8B84' }]}>Change Password</Text>

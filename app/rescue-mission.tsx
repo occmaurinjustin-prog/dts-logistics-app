@@ -1,6 +1,6 @@
 import { AppAlert } from '@/components/AppAlert';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView, Modal, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -15,6 +15,9 @@ export default function RescueMissionScreen() {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [locationSubscription, setLocationSubscription] = useState<Location.LocationSubscription | null>(null);
+    const [inventory, setInventory] = useState<any[]>([]);
+    const [selectedParts, setSelectedParts] = useState<any[]>([]);
+    const [showPartsModal, setShowPartsModal] = useState(false);
 
     useEffect(() => {
         if (!id) {
@@ -22,6 +25,7 @@ export default function RescueMissionScreen() {
             return;
         }
         fetchRescueDetails();
+        fetchInventory();
         
         return () => {
             if (locationSubscription) {
@@ -51,6 +55,21 @@ export default function RescueMissionScreen() {
             console.error('Failed to fetch rescue details:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchInventory = async () => {
+        try {
+            const token = await authService.getToken();
+            const response = await fetch(`${getApiBaseUrl()}/mechanic/inventory`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setInventory(data.parts);
+            }
+        } catch (error) {
+            console.error('Failed to fetch inventory:', error);
         }
     };
 
@@ -90,16 +109,38 @@ export default function RescueMissionScreen() {
     };
 
     const updateStatus = async (status: string) => {
+        if (status === 'resolved') {
+            setShowPartsModal(true);
+        } else {
+            proceedUpdateStatus(status);
+        }
+    };
+
+    const submitResolution = () => {
+        setShowPartsModal(false);
+        proceedUpdateStatus('resolved');
+    };
+
+    const proceedUpdateStatus = async (status: string) => {
         setUpdating(true);
         try {
             const token = await authService.getToken();
+            
+            const payload: any = { status };
+            if (status === 'resolved' && selectedParts.length > 0) {
+                payload.parts = selectedParts.map(p => ({
+                    Inventory_id: p.Inventory_id,
+                    quantity: p.quantity
+                }));
+            }
+
             const response = await fetch(`${getApiBaseUrl()}/rescue/${id}/status`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ status })
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
@@ -120,7 +161,8 @@ export default function RescueMissionScreen() {
                     fetchRescueDetails();
                 }
             } else {
-                AppAlert.alert('Error', 'Failed to update status.');
+                const errData = await response.json();
+                AppAlert.alert('Error', errData.message || 'Failed to update status.');
             }
         } catch (error) {
             console.error(error);
@@ -128,6 +170,28 @@ export default function RescueMissionScreen() {
         } finally {
             setUpdating(false);
         }
+    };
+
+    const handleTogglePart = (part: any) => {
+        const exists = selectedParts.find((p) => p.Inventory_id === part.Inventory_id);
+        if (exists) {
+            setSelectedParts(selectedParts.filter((p) => p.Inventory_id !== part.Inventory_id));
+        } else {
+            setSelectedParts([...selectedParts, { ...part, quantity: 1 }]);
+        }
+    };
+
+    const handleUpdateQuantity = (id: number, delta: number) => {
+        setSelectedParts(selectedParts.map((p) => {
+            if (p.Inventory_id === id) {
+                const newQuantity = p.quantity + delta;
+                const part = inventory.find((i) => i.Inventory_id === id);
+                if (newQuantity > 0 && part && newQuantity <= part.quantity) {
+                    return { ...p, quantity: newQuantity };
+                }
+            }
+            return p;
+        }));
     };
 
     if (loading) {
@@ -204,6 +268,76 @@ export default function RescueMissionScreen() {
                     </View>
                 )}
             </ScrollView>
+
+            {/* Parts Modal */}
+            <Modal visible={showPartsModal} animationType="slide" transparent={true}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Select Parts Used</Text>
+                        <Text style={styles.modalSubtitle}>Did you use any parts for this rescue mission?</Text>
+                        
+                        <ScrollView style={styles.inventoryList}>
+                            {inventory.map(part => {
+                                const isSelected = selectedParts.find(p => p.Inventory_id === part.Inventory_id);
+                                return (
+                                    <View key={part.Inventory_id} style={[styles.partItem, isSelected && styles.partItemSelected]}>
+                                        <TouchableOpacity 
+                                            style={[styles.partInfo, part.quantity <= 0 && { opacity: 0.5 }]}
+                                            onPress={() => handleTogglePart(part)}
+                                            disabled={part.quantity <= 0}
+                                        >
+                                            <Ionicons 
+                                                name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                                                size={24} 
+                                                color={isSelected ? "#0F6B5A" : "#D1D5DB"} 
+                                            />
+                                            <View style={{marginLeft: 12, flex: 1}}>
+                                                <Text style={styles.partName}>{part.part_name}</Text>
+                                                <Text style={styles.partStock}>Stock: {part.quantity} {part.unit}</Text>
+                                            </View>
+                                        </TouchableOpacity>
+
+                                        {isSelected && (
+                                            <View style={styles.quantityControl}>
+                                                <TouchableOpacity 
+                                                    style={styles.qtyBtn}
+                                                    onPress={() => handleUpdateQuantity(part.Inventory_id, -1)}
+                                                >
+                                                    <Ionicons name="remove" size={16} color="#0F6B5A" />
+                                                </TouchableOpacity>
+                                                <Text style={styles.qtyText}>{isSelected.quantity}</Text>
+                                                <TouchableOpacity 
+                                                    style={styles.qtyBtn}
+                                                    onPress={() => handleUpdateQuantity(part.Inventory_id, 1)}
+                                                >
+                                                    <Ionicons name="add" size={16} color="#0F6B5A" />
+                                                </TouchableOpacity>
+                                            </View>
+                                        )}
+                                    </View>
+                                );
+                            })}
+                        </ScrollView>
+
+                        <View style={styles.modalActions}>
+                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowPartsModal(false)}>
+                                <Text style={styles.modalCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={[styles.modalSubmitBtn, updating && { opacity: 0.7 }]} 
+                                onPress={submitResolution}
+                                disabled={updating}
+                            >
+                                {updating ? (
+                                    <ActivityIndicator color="#FFFFFF" size="small" />
+                                ) : (
+                                    <Text style={styles.modalSubmitText}>Complete Rescue</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -229,4 +363,22 @@ const styles = StyleSheet.create({
     enRouteBtn: { backgroundColor: '#2A9D8F' },
     arrivedBtn: { backgroundColor: '#F59E0B' },
     resolvedBtn: { backgroundColor: '#0F6B5A' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+    modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '80%' },
+    modalTitle: { fontSize: 20, fontWeight: '800', color: '#23423B', marginBottom: 4 },
+    modalSubtitle: { fontSize: 14, color: '#6F8B84', marginBottom: 16 },
+    inventoryList: { maxHeight: 400 },
+    partItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#EEF4F1', marginBottom: 12 },
+    partItemSelected: { borderColor: '#0F6B5A', backgroundColor: '#F0FDF4' },
+    partInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    partName: { fontSize: 15, fontWeight: '600', color: '#23423B' },
+    partStock: { fontSize: 12, color: '#6F8B84' },
+    quantityControl: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#DDE9E3' },
+    qtyBtn: { padding: 8 },
+    qtyText: { width: 30, textAlign: 'center', fontWeight: '700', color: '#0F6B5A' },
+    modalActions: { flexDirection: 'row', marginTop: 24, gap: 12 },
+    modalCancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#EEF4F1', alignItems: 'center' },
+    modalCancelText: { color: '#4F6C66', fontWeight: '700', fontSize: 15 },
+    modalSubmitBtn: { flex: 2, paddingVertical: 14, borderRadius: 12, backgroundColor: '#0F6B5A', alignItems: 'center' },
+    modalSubmitText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });

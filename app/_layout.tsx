@@ -12,6 +12,7 @@ const queryClient = new QueryClient();
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import authService from '@/services/authService';
 import { AppAlertUI } from '@/components/AppAlert';
+import '@/services/locationTask';
 
 export const unstable_settings = {
   anchor: 'login',

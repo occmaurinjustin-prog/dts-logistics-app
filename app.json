@@ -4,7 +4,7 @@
     "slug": "DRIVER_APP",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/custom-logo-padded.png",
     "scheme": "driverapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,7 +15,7 @@
       "package": "com.dts.driverapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "foregroundImage": "./assets/images/custom-logo-padded.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -29,7 +29,8 @@
         "android.permission.FOREGROUND_SERVICE_LOCATION",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -77,8 +78,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "95c9fb80-3325-42fa-8303-c462d6739a70"
+        "projectId": "d839718f-13b3-4a7b-97f4-d92e81dd4420"
       }
-    }
+    },
+    "owner": "maurintinays-team"
   }
 }

@@ -5,6 +5,8 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
+  TextInput,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -46,6 +48,10 @@ export default function MechanicAssignmentsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'maintenance' | 'rescue'>('maintenance');
+  const [showPartsModal, setShowPartsModal] = useState(false);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [selectedParts, setSelectedParts] = useState<{Inventory_id: number, quantity: number, name: string}[]>([]);
 
   useEffect(() => {
     fetchAssignments();
@@ -98,6 +104,93 @@ export default function MechanicAssignmentsScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  
+  const fetchInventory = async () => {
+    try {
+      const token = await authService.getToken();
+      const response = await fetch('https://consult-powwow-vexingly.ngrok-free.dev/api/mechanic/inventory', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) setInventory(data.parts);
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const openPartsModal = (assignmentId: number) => {
+    setSelectedAssignmentId(assignmentId);
+    setSelectedParts([]);
+    setShowPartsModal(true);
+  };
+
+  const handleTogglePart = (part: any) => {
+    if (part.quantity <= 0) {
+      AppAlert.alert('Out of Stock', 'This part is currently out of stock.');
+      return;
+    }
+    const existing = selectedParts.find(p => p.Inventory_id === part.Inventory_id);
+    if (existing) {
+      setSelectedParts(selectedParts.filter(p => p.Inventory_id !== part.Inventory_id));
+    } else {
+      setSelectedParts([...selectedParts, { Inventory_id: part.Inventory_id, quantity: 1, name: part.part_name }]);
+    }
+  };
+
+  const handleUpdateQuantity = (partId: number, change: number) => {
+    const part = inventory.find(p => p.Inventory_id === partId);
+    const maxStock = part ? part.quantity : 999;
+
+    setSelectedParts(selectedParts.map(p => {
+      if (p.Inventory_id === partId) {
+        const newQ = Math.max(1, Math.min(p.quantity + change, maxStock));
+        return { ...p, quantity: newQ };
+      }
+      return p;
+    }));
+  };
+
+  const submitCompletion = async () => {
+    if (!selectedAssignmentId) return;
+    try {
+      setLoading(true);
+      setShowPartsModal(false);
+      const token = await authService.getToken();
+      
+      const payload = {
+        status: 'completed',
+        parts_used: selectedParts.map(p => ({ Inventory_id: p.Inventory_id, quantity: p.quantity }))
+      };
+
+      const response = await fetch(`https://consult-powwow-vexingly.ngrok-free.dev/api/mechanic/assignments/${selectedAssignmentId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        AppAlert.alert('Success', 'Maintenance completed successfully');
+        fetchAssignments();
+      } else {
+        AppAlert.alert('Error', data.message || 'Failed to complete maintenance');
+      }
+    } catch (error) {
+      console.error('Error completing:', error);
+      AppAlert.alert('Error', 'Failed to complete maintenance');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -421,7 +514,7 @@ export default function MechanicAssignmentsScreen() {
                     {assignment.status === 'in_progress' && (
                       <TouchableOpacity
                         style={[styles.actionButton, styles.completeButton]}
-                        onPress={() => handleUpdateStatus(assignment.id, 'completed')}
+                        onPress={() => openPartsModal(assignment.id)}
                       >
                         <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                         <Text style={styles.actionButtonText}>Complete Repair</Text>
@@ -439,6 +532,77 @@ export default function MechanicAssignmentsScreen() {
             </View>
           )}
         </ScrollView>
+      
+      {/* Parts Modal */}
+      <Modal visible={showPartsModal} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Parts Used</Text>
+            <Text style={styles.modalSubtitle}>Did you use any parts for this repair?</Text>
+            
+            <ScrollView style={styles.inventoryList}>
+              {inventory.map(part => {
+                const isSelected = selectedParts.find(p => p.Inventory_id === part.Inventory_id);
+                return (
+                  <View key={part.Inventory_id} style={[styles.partItem, isSelected && styles.partItemSelected]}>
+                    <TouchableOpacity 
+                      style={[styles.partInfo, part.quantity <= 0 && { opacity: 0.5 }]}
+                      onPress={() => handleTogglePart(part)}
+                      disabled={part.quantity <= 0}
+                    >
+                      <Ionicons 
+                        name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                        size={24} 
+                        color={isSelected ? "#0F6B5A" : "#D1D5DB"} 
+                      />
+                      <View style={{marginLeft: 12, flex: 1}}>
+                        <Text style={styles.partName}>{part.part_name}</Text>
+                        <Text style={styles.partStock}>Stock: {part.quantity} {part.unit}</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    {isSelected && (
+                      <View style={styles.quantityControl}>
+                        <TouchableOpacity 
+                          style={styles.qtyBtn}
+                          onPress={() => handleUpdateQuantity(part.Inventory_id, -1)}
+                        >
+                          <Ionicons name="remove" size={16} color="#0F6B5A" />
+                        </TouchableOpacity>
+                        <Text style={styles.qtyText}>{isSelected.quantity}</Text>
+                        <TouchableOpacity 
+                          style={styles.qtyBtn}
+                          onPress={() => handleUpdateQuantity(part.Inventory_id, 1)}
+                        >
+                          <Ionicons name="add" size={16} color="#0F6B5A" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowPartsModal(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalSubmitBtn, loading && { opacity: 0.7 }]} 
+                onPress={submitCompletion}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalSubmitText}>Complete Repair</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       </SafeAreaView>
     </View>
   );
@@ -712,6 +876,26 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginLeft: 8,
   },
+  
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '80%' },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: '#23423B', marginBottom: 4 },
+  modalSubtitle: { fontSize: 14, color: '#6F8B84', marginBottom: 16 },
+  inventoryList: { maxHeight: 400 },
+  partItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#EEF4F1', marginBottom: 12 },
+  partItemSelected: { borderColor: '#0F6B5A', backgroundColor: '#F0FDF4' },
+  partInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  partName: { fontSize: 15, fontWeight: '600', color: '#23423B' },
+  partStock: { fontSize: 12, color: '#6F8B84' },
+  quantityControl: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#DDE9E3' },
+  qtyBtn: { padding: 8 },
+  qtyText: { width: 30, textAlign: 'center', fontWeight: '700', color: '#0F6B5A' },
+  modalActions: { flexDirection: 'row', marginTop: 24, gap: 12 },
+  modalCancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#EEF4F1', alignItems: 'center' },
+  modalCancelText: { color: '#4F6C66', fontWeight: '700', fontSize: 15 },
+  modalSubmitBtn: { flex: 2, paddingVertical: 14, borderRadius: 12, backgroundColor: '#0F6B5A', alignItems: 'center' },
+  modalSubmitText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+
   completedButtonText: {
     color: '#0F6B5A',
   },

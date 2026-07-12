@@ -429,6 +429,12 @@ export default function NavigationScreen() {
         return;
       }
 
+      // Request background permissions
+      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      if (backgroundStatus !== 'granted') {
+        AppAlert.alert('Background Permission Required', 'Please select "Allow all the time" in settings to track your location when the app is minimized.');
+      }
+
       // Check if GPS is enabled
       const enabled = await Location.hasServicesEnabledAsync();
       setGpsEnabled(enabled);
@@ -438,7 +444,24 @@ export default function NavigationScreen() {
         return;
       }
 
-      // Start watching position with smoother updates
+      // Start background location updates (headless task)
+      try {
+        await Location.startLocationUpdatesAsync('BACKGROUND_LOCATION_TASK', {
+          accuracy: Location.Accuracy.Balanced,
+          distanceInterval: 10,
+          deferredUpdatesInterval: 5000,
+          foregroundService: {
+            notificationTitle: 'DTS Navigation',
+            notificationBody: 'Tracking your route in the background',
+            notificationColor: '#3B82F6',
+          },
+        });
+        console.log('Started background location updates');
+      } catch (e) {
+        console.warn('Could not start background location:', e);
+      }
+
+      // Start watching position with smoother updates for Foreground UI
       locationSubscription.current = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.Balanced,
@@ -605,7 +628,7 @@ export default function NavigationScreen() {
     }
   };
 
-  const stopGPSTracking = () => {
+  const stopGPSTracking = async () => {
     if (locationSubscription.current) {
       locationSubscription.current.remove();
       locationSubscription.current = null;
@@ -613,6 +636,17 @@ export default function NavigationScreen() {
     if (locationUpdateInterval.current) {
       clearInterval(locationUpdateInterval.current);
       locationUpdateInterval.current = null;
+    }
+    
+    // Stop background location updates
+    try {
+      const hasTask = await Location.hasStartedLocationUpdatesAsync('BACKGROUND_LOCATION_TASK');
+      if (hasTask) {
+        await Location.stopLocationUpdatesAsync('BACKGROUND_LOCATION_TASK');
+        console.log('Stopped background location updates');
+      }
+    } catch (e) {
+      console.warn('Could not stop background location:', e);
     }
   };
 
